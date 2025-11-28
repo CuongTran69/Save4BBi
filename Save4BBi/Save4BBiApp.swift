@@ -6,12 +6,33 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct Save4BBiApp: App {
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            MedicalVisit.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+    
+    @State private var isAuthenticated = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if isAuthenticated {
+                HomeView()
+                    .modelContainer(sharedModelContainer)
+            } else {
+                AuthenticationView(isAuthenticated: $isAuthenticated)
+            }
         }
     }
 }

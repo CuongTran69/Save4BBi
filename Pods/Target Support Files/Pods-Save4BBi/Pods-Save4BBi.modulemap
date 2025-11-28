@@ -1,0 +1,6 @@
+framework module Pods_Save4BBi {
+  umbrella header "Pods-Save4BBi-umbrella.h"
+
+  export *
+  module * { export * }
+}

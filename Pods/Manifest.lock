@@ -1,0 +1,43 @@
+PODS:
+  - KeychainAccess (4.2.2)
+  - Kingfisher (7.12.0)
+  - RxCocoa (6.0.0):
+    - RxRelay (= 6.0.0)
+    - RxSwift (= 6.0.0)
+  - RxRelay (6.0.0):
+    - RxSwift (= 6.0.0)
+  - RxSwift (6.0.0)
+  - SnapKit (5.7.1)
+  - SwiftDate (7.0.0)
+
+DEPENDENCIES:
+  - KeychainAccess (~> 4.2)
+  - Kingfisher (~> 7.0)
+  - RxCocoa (= 6.0)
+  - RxRelay (= 6.0)
+  - RxSwift (= 6.0)
+  - SnapKit (~> 5.0)
+  - SwiftDate (~> 7.0)
+
+SPEC REPOS:
+  trunk:
+    - KeychainAccess
+    - Kingfisher
+    - RxCocoa
+    - RxRelay
+    - RxSwift
+    - SnapKit
+    - SwiftDate
+
+SPEC CHECKSUMS:
+  KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
+  Kingfisher: 53a10ea35051a436b5fb626ca2dd8f3144d755e9
+  RxCocoa: 3f79328fafa3645b34600f37c31e64c73ae3a80e
+  RxRelay: 8d593be109c06ea850df027351beba614b012ffb
+  RxSwift: c14e798c59b9f6e9a2df8fd235602e85cc044295
+  SnapKit: d612e99e678a2d3b95bf60b0705ed0a35c03484a
+  SwiftDate: bbc26e26fc8c0c33fbee8c140c5e8a68293a148a
+
+PODFILE CHECKSUM: 73593a08c4d96c0cb3eeface47355917f781b34e
+
+COCOAPODS: 1.16.2

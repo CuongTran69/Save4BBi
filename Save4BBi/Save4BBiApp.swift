@@ -23,15 +23,15 @@ struct Save4BBiApp: App {
         }
     }()
     
-    @State private var isAuthenticated = false
+    @State private var showHome = false
 
     var body: some Scene {
         WindowGroup {
-            if isAuthenticated {
+            if showHome {
                 HomeView()
                     .modelContainer(sharedModelContainer)
             } else {
-                AuthenticationView(isAuthenticated: $isAuthenticated)
+                SplashScreenView(showHome: $showHome)
             }
         }
     }

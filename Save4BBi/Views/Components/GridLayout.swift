@@ -6,36 +6,63 @@
 //
 
 import SwiftUI
+import SwiftData
+import RxSwift
 
 struct GridLayout: View {
     let visits: [MedicalVisit]
+    @Environment(\.modelContext) private var modelContext
     
-    private let columns = [
-        GridItem(.flexible(), spacing: Theme.Spacing.md),
-        GridItem(.flexible(), spacing: Theme.Spacing.md)
-    ]
+    private let photoService = PhotoService.shared
+    private let disposeBag = DisposeBag()
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: Theme.Spacing.md) {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ],
+            spacing: 16
+        ) {
             ForEach(visits) { visit in
                 NavigationLink {
                     VisitDetailView(visit: visit)
                 } label: {
-                    VisitCard(visit: visit)
+                    VisitCard(visit: visit) {
+                        deleteVisit(visit)
+                    }
                 }
                 .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal, 6)
             }
         }
-        .padding(Theme.Spacing.md)
+        .padding(.horizontal, 10)
     }
-}
-
-#Preview {
-    NavigationStack {
-        ScrollView {
-            GridLayout(visits: MedicalVisit.samples)
+    
+    private func deleteVisit(_ visit: MedicalVisit) {
+        // Delete photos from file system
+        for filename in visit.photoFilePaths {
+            photoService.deletePhoto(filename: filename)
+                .subscribe()
+                .disposed(by: disposeBag)
         }
-        .background(Theme.Colors.background)
+        
+        // Delete from database
+        modelContext.delete(visit)
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error deleting visit: \(error)")
+        }
     }
 }
 
+// #Preview {
+//     NavigationStack {
+//         ScrollView {
+//             GridLayout(visits: MedicalVisit.samples)
+//         }
+//         .background(Theme.Colors.background)
+//     }
+// }

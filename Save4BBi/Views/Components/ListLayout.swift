@@ -6,31 +6,55 @@
 //
 
 import SwiftUI
+import SwiftData
+import RxSwift
 
 struct ListLayout: View {
     let visits: [MedicalVisit]
+    @Environment(\.modelContext) private var modelContext
+    
+    private let photoService = PhotoService.shared
+    private let disposeBag = DisposeBag()
     
     var body: some View {
-        LazyVStack(spacing: Theme.Spacing.md) {
+        LazyVStack(spacing: 16) {
             ForEach(visits) { visit in
                 NavigationLink {
                     VisitDetailView(visit: visit)
                 } label: {
-                    VisitCard(visit: visit)
+                    VisitCard(visit: visit) {
+                        deleteVisit(visit)
+                    }
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(Theme.Spacing.md)
     }
-}
-
-#Preview {
-    NavigationStack {
-        ScrollView {
-            ListLayout(visits: MedicalVisit.samples)
+    
+    private func deleteVisit(_ visit: MedicalVisit) {
+        // Delete photos from file system
+        for filename in visit.photoFilePaths {
+            photoService.deletePhoto(filename: filename)
+                .subscribe()
+                .disposed(by: disposeBag)
         }
-        .background(Theme.Colors.background)
+        
+        // Delete from database
+        modelContext.delete(visit)
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error deleting visit: \(error)")
+        }
     }
 }
 
+// #Preview {
+//     NavigationStack {
+//         ScrollView {
+//             ListLayout(visits: MedicalVisit.samples)
+//         }
+//         .background(Theme.Colors.background)
+//     }
+// }

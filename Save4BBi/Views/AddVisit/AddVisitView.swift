@@ -49,6 +49,7 @@ struct AddVisitView: View {
                 }
                 .padding(Theme.Spacing.md)
             }
+            .dismissKeyboardOnTap()
             .background(Theme.Colors.background)
             .navigationTitle("New Visit")
             .navigationBarTitleDisplayMode(.inline)

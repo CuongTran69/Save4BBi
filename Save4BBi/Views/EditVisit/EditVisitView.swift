@@ -63,6 +63,7 @@ struct EditVisitView: View {
                 }
                 .padding(Theme.Spacing.md)
             }
+            .dismissKeyboardOnTap()
             .background(Theme.Colors.background)
             .navigationTitle("Edit Visit")
             .navigationBarTitleDisplayMode(.inline)

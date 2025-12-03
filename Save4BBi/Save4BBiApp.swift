@@ -10,29 +10,20 @@ import SwiftData
 
 @main
 struct Save4BBiApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            MedicalVisit.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-    
     @State private var showHome = false
 
     var body: some Scene {
         WindowGroup {
-            if showHome {
-                HomeView()
-                    .modelContainer(sharedModelContainer)
-            } else {
-                SplashScreenView(showHome: $showHome)
+            ZStack {
+                if showHome {
+                    HomeView()
+                        .transition(.opacity)
+                } else {
+                    SplashScreenView(showHome: $showHome)
+                }
             }
+            .animation(.easeInOut(duration: 0.3), value: showHome)
         }
+        .modelContainer(for: MedicalVisit.self)
     }
 }

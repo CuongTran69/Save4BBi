@@ -6,161 +6,111 @@
 //
 
 import SwiftUI
-import RxSwift
-import SwiftData
 
 struct VisitCard: View {
     let visit: MedicalVisit
     var onDelete: (() -> Void)? = nil
-    
+    var isCompact: Bool = true  // For grid view (compact) vs list view (full)
+
     @State private var thumbnailImage: UIImage?
     @State private var isLoadingThumbnail = false
     @State private var showingFullScreen = false
     @State private var showingDeleteDialog = false
     @State private var allImages: [UIImage] = []
-    
+
     private let photoService = PhotoService.shared
-    private let disposeBag = DisposeBag()
-    
+
+    // Fixed heights for consistent grid layout
+    private let thumbnailHeight: CGFloat = 120
+    private let contentMinHeight: CGFloat = 100
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Thumbnail image at top (if available)
-            if visit.hasPhotos {
-                Group {
-                    if let thumbnail = thumbnailImage {
-                        Image(uiImage: thumbnail)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 160)
-                            .clipped()
-                            .onTapGesture {
-                                showingFullScreen = true
-                            }
-                    } else if isLoadingThumbnail {
-                        Rectangle()
-                            .fill(Theme.Colors.primary.opacity(0.1))
-                            .frame(height: 160)
-                            .overlay(
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
-                            )
-                    } else {
-                        Rectangle()
-                            .fill(Theme.Colors.primary.opacity(0.1))
-                            .frame(height: 160)
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .font(.largeTitle)
-                                    .foregroundColor(Theme.Colors.primary.opacity(0.3))
-                            )
-                    }
+            // Thumbnail image at top
+            ZStack(alignment: .topTrailing) {
+                thumbnailView
+
+                // Delete button - inside the card
+                if onDelete != nil {
+                    deleteButton
+                        .padding(8)
                 }
             }
-            
+            .frame(height: thumbnailHeight)
+            .clipped()
+
             // Content
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            VStack(alignment: .leading, spacing: 6) {
                 // Header with icon and date
-                HStack {
+                HStack(spacing: 6) {
                     Image(systemName: iconForCondition(visit.condition))
-                        .font(.title3)
+                        .font(.caption)
                         .foregroundColor(Theme.Colors.primary)
-                        .frame(width: 32, height: 32)
+                        .frame(width: 24, height: 24)
                         .background(Theme.Colors.primary.opacity(0.1))
                         .clipShape(Circle())
-                    
-                    Spacer()
-                    
+
                     Text(visit.formattedDate)
                         .font(Theme.Typography.caption)
                         .foregroundColor(Theme.Colors.text.opacity(0.6))
-                }
-                
-                // Title and condition
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(visit.displayTitle)
-                        .font(Theme.Typography.title3)
-                        .foregroundColor(Theme.Colors.text)
                         .lineLimit(1)
-                    
-                    Text(visit.condition)
-                        .font(Theme.Typography.subheadline)
-                        .foregroundColor(Theme.Colors.text.opacity(0.7))
-                        .lineLimit(1)
+
+                    Spacer(minLength: 0)
                 }
-                
-                // Doctor name
-                if !visit.doctorName.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "stethoscope")
-                            .font(.caption)
-                            .foregroundColor(Theme.Colors.secondary)
-                        
-                        Text(visit.doctorName)
-                            .font(Theme.Typography.footnote)
-                            .foregroundColor(Theme.Colors.text.opacity(0.6))
-                            .lineLimit(1)
-                    }
-                }
-                
-                // Tags and photo count
-                HStack {
-                    // Tags
-                    if !visit.tags.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: Theme.Spacing.xs) {
-                                ForEach(visit.tags.prefix(2), id: \.self) { tag in
-                                    TagView(text: tag)
-                                }
-                                if visit.tags.count > 2 {
-                                    Text("+\(visit.tags.count - 2)")
-                                        .font(Theme.Typography.caption)
-                                        .foregroundColor(Theme.Colors.text.opacity(0.5))
-                                }
-                            }
+
+                // Title
+                Text(visit.displayTitle)
+                    .font(Theme.Typography.bodyBold)
+                    .foregroundColor(Theme.Colors.text)
+                    .lineLimit(1)
+
+                // Condition
+                Text(visit.condition)
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.text.opacity(0.7))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                // Bottom row: Doctor/Tag + Photo count
+                HStack(spacing: 4) {
+                    if !visit.doctorName.isEmpty {
+                        HStack(spacing: 2) {
+                            Image(systemName: "stethoscope")
+                                .font(.system(size: 10))
+                                .foregroundColor(Theme.Colors.secondary)
+
+                            Text(visit.doctorName)
+                                .font(.system(size: 11))
+                                .foregroundColor(Theme.Colors.text.opacity(0.6))
+                                .lineLimit(1)
                         }
+                    } else if let firstTag = visit.tags.first {
+                        TagView(text: firstTag, isCompact: true)
                     }
-                    
-                    Spacer()
-                    
+
+                    Spacer(minLength: 0)
+
                     // Photo count
                     if visit.hasPhotos {
-                        HStack(spacing: 4) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.caption)
+                        HStack(spacing: 2) {
+                            Image(systemName: "photo")
+                                .font(.system(size: 10))
                                 .foregroundColor(Theme.Colors.accent)
-                            
+
                             Text("\(visit.photoCount)")
-                                .font(Theme.Typography.caption)
+                                .font(.system(size: 11))
                                 .foregroundColor(Theme.Colors.text.opacity(0.6))
                         }
                     }
                 }
             }
-            .padding(Theme.Spacing.md)
+            .padding(10)
+            .frame(minHeight: contentMinHeight, alignment: .top)
         }
         .background(Theme.Colors.cardBackground)
-        .cornerRadius(Theme.CornerRadius.large)
-        .shadow(color: Theme.Colors.shadow, radius: 8, x: 0, y: 2)
-        .overlay(alignment: .topTrailing) {
-            // Delete button
-            Button {
-                showingDeleteDialog = true
-            } label: {
-                ZStack {
-                    // Background blur effect
-                    Circle()
-                        .fill(Color.white.opacity(0.95))
-                        .frame(width: 36, height: 36)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                    
-                    // Icon
-                    Image(systemName: "trash")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Theme.Colors.error)
-                }
-            }
-            .padding(Theme.Spacing.sm)
-        }
+        .clipShape(RoundedRectangle(cornerRadius: Theme.CornerRadius.medium))
+        .shadow(color: Theme.Colors.shadow.opacity(0.5), radius: 4, x: 0, y: 2)
         .onAppear {
             loadThumbnail()
         }
@@ -177,43 +127,111 @@ struct VisitCard: View {
             secondaryButton: DialogButton(title: "Cancel") {}
         )
     }
-    
+
+    // MARK: - Thumbnail View
+    @ViewBuilder
+    private var thumbnailView: some View {
+        if visit.hasPhotos {
+            if let thumbnail = thumbnailImage {
+                Image(uiImage: thumbnail)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: thumbnailHeight)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        showingFullScreen = true
+                    }
+            } else if isLoadingThumbnail {
+                Rectangle()
+                    .fill(Theme.Colors.primary.opacity(0.1))
+                    .overlay(
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
+                            .scaleEffect(0.8)
+                    )
+            } else {
+                Rectangle()
+                    .fill(Theme.Colors.primary.opacity(0.1))
+                    .overlay(
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .foregroundColor(Theme.Colors.primary.opacity(0.3))
+                    )
+            }
+        } else {
+            // No photo - show gradient placeholder
+            LinearGradient(
+                colors: [
+                    Theme.Colors.primary.opacity(0.15),
+                    Theme.Colors.accent.opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .overlay(
+                Image(systemName: iconForCondition(visit.condition))
+                    .font(.system(size: 32))
+                    .foregroundColor(Theme.Colors.primary.opacity(0.3))
+            )
+        }
+    }
+
+    // MARK: - Delete Button
+    private var deleteButton: some View {
+        Button {
+            showingDeleteDialog = true
+        } label: {
+            Image(systemName: "trash.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 28, height: 28)
+                .background(
+                    Circle()
+                        .fill(Theme.Colors.error.opacity(0.9))
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                )
+        }
+    }
+
     // MARK: - Load Thumbnail
     private func loadThumbnail() {
-        guard visit.hasPhotos, let firstPhotoPath = visit.photoFilePaths.first else { return }
-        
+        // Guard: skip if no photos or already loaded
+        guard visit.hasPhotos, !visit.photoFilePaths.isEmpty else { return }
+        guard thumbnailImage == nil, allImages.isEmpty else { return }
+
         isLoadingThumbnail = true
-        
-        // Load all images for full screen viewer
-        let photoObservables = visit.photoFilePaths.map { filename in
-            photoService.loadPhoto(filename: filename)
-        }
-        
-        Observable.concat(photoObservables)
-            .observe(on: MainScheduler.instance)
-            .subscribe(
-                onNext: { image in
-                    self.allImages.append(image)
-                    if self.thumbnailImage == nil {
-                        self.thumbnailImage = image
-                        self.isLoadingThumbnail = false
+
+        Task {
+            var loadedImages: [UIImage] = []
+
+            for filename in visit.photoFilePaths {
+                do {
+                    let image = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<UIImage, Error>) in
+                        _ = photoService.loadPhoto(filename: filename)
+                            .subscribe(
+                                onNext: { image in continuation.resume(returning: image) },
+                                onError: { error in continuation.resume(throwing: error) }
+                            )
                     }
-                },
-                onError: { error in
+                    loadedImages.append(image)
+                } catch {
                     print("Error loading thumbnail: \(error)")
-                    self.isLoadingThumbnail = false
-                },
-                onCompleted: {
-                    self.isLoadingThumbnail = false
                 }
-            )
-            .disposed(by: disposeBag)
+            }
+
+            await MainActor.run {
+                allImages = loadedImages
+                thumbnailImage = loadedImages.first
+                isLoadingThumbnail = false
+            }
+        }
     }
-    
+
     // Helper function to get icon based on condition
     private func iconForCondition(_ condition: String) -> String {
         let lowercased = condition.lowercased()
-        
+
         if lowercased.contains("vaccination") || lowercased.contains("vaccine") {
             return "syringe"
         } else if lowercased.contains("dental") || lowercased.contains("teeth") {
@@ -233,13 +251,14 @@ struct VisitCard: View {
 // MARK: - Tag View
 struct TagView: View {
     let text: String
-    
+    var isCompact: Bool = false
+
     var body: some View {
         Text(text)
-            .font(Theme.Typography.caption)
+            .font(isCompact ? .system(size: 10) : Theme.Typography.caption)
             .foregroundColor(Theme.Colors.primary)
-            .padding(.horizontal, Theme.Spacing.sm)
-            .padding(.vertical, 4)
+            .padding(.horizontal, isCompact ? 6 : Theme.Spacing.sm)
+            .padding(.vertical, isCompact ? 2 : 4)
             .background(Theme.Colors.primary.opacity(0.1))
             .cornerRadius(Theme.CornerRadius.small)
     }

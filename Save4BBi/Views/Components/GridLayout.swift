@@ -7,49 +7,51 @@
 
 import SwiftUI
 import SwiftData
-import RxSwift
 
 struct GridLayout: View {
     let visits: [MedicalVisit]
     @Environment(\.modelContext) private var modelContext
-    
+
     private let photoService = PhotoService.shared
-    private let disposeBag = DisposeBag()
-    
+
+    // Grid columns with fixed spacing
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
     var body: some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ],
-            spacing: 16
-        ) {
+        LazyVGrid(columns: columns, spacing: 12) {
             ForEach(visits) { visit in
                 NavigationLink {
                     VisitDetailView(visit: visit)
                 } label: {
-                    VisitCard(visit: visit) {
-                        deleteVisit(visit)
-                    }
+                    VisitCard(visit: visit, onDelete: { deleteVisit(visit) }, isCompact: true)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.horizontal, 6)
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
     }
-    
+
     private func deleteVisit(_ visit: MedicalVisit) {
-        // Delete photos from file system
-        for filename in visit.photoFilePaths {
-            photoService.deletePhoto(filename: filename)
-                .subscribe()
-                .disposed(by: disposeBag)
+        // Delete photos from file system using Task
+        Task {
+            for filename in visit.photoFilePaths {
+                _ = try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    _ = photoService.deletePhoto(filename: filename)
+                        .subscribe(
+                            onNext: { continuation.resume(returning: ()) },
+                            onError: { error in continuation.resume(throwing: error) }
+                        )
+                }
+            }
         }
-        
+
         // Delete from database
         modelContext.delete(visit)
-        
+
         do {
             try modelContext.save()
         } catch {
@@ -58,11 +60,11 @@ struct GridLayout: View {
     }
 }
 
-// #Preview {
-//     NavigationStack {
-//         ScrollView {
-//             GridLayout(visits: MedicalVisit.samples)
-//         }
-//         .background(Theme.Colors.background)
-//     }
-// }
+#Preview {
+    NavigationStack {
+        ScrollView {
+            GridLayout(visits: MedicalVisit.samples)
+        }
+        .background(Theme.Colors.background)
+    }
+}

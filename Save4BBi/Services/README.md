@@ -21,14 +21,9 @@ Services.keychain.getOrCreateEncryptionKey()
         print("Encryption key: \(key)")
     })
     .disposed(by: disposeBag)
-
-// Save string to keychain
-Services.keychain.save(string: "value", forKey: "key")
-    .subscribe()
-    .disposed(by: disposeBag)
 ```
 
-**Dependencies**: 
+**Dependencies**:
 - KeychainAccess (~> 4.2)
 - RxSwift (6.0)
 
@@ -43,7 +38,6 @@ Services.keychain.save(string: "value", forKey: "key")
 - ✅ String encryption/decryption (for metadata)
 - ✅ SHA-256 hashing for data integrity verification
 - ✅ Automatic key management via KeychainService
-- ✅ Built-in authentication tag for data integrity
 
 **Usage**:
 ```swift
@@ -84,7 +78,6 @@ Services.encryption.decryptPhoto(encryptedData)
 // Save photo (resize + compress + encrypt)
 Services.photo.savePhoto(image)
     .subscribe(onNext: { filename in
-        // Save filename to database
         print("Photo saved: \(filename)")
     })
     .disposed(by: disposeBag)
@@ -102,53 +95,12 @@ Services.photo.deletePhoto(filename: "uuid.enc")
     .disposed(by: disposeBag)
 ```
 
-**Storage Location**: 
+**Storage Location**:
 - `Documents/EncryptedPhotos/` directory
 - Files are encrypted with `.enc` extension
 
-**Dependencies**: 
+**Dependencies**:
 - Kingfisher (~> 7.0)
-- RxSwift (6.0)
-
----
-
-### 4. BiometricService
-**Purpose**: Face ID / Touch ID authentication
-
-**Key Features**:
-- ✅ Biometric type detection (Face ID, Touch ID, Optic ID)
-- ✅ Availability checking
-- ✅ Biometric authentication
-- ✅ Fallback to device passcode
-- ✅ Detailed error handling
-
-**Usage**:
-```swift
-// Check biometric availability
-let biometricType = Services.biometric.biometricType()
-print("Available: \(biometricType.displayName)")
-
-// Authenticate with biometrics only
-Services.biometric.authenticate(reason: "Access medical records")
-    .subscribe(onNext: { success in
-        if success {
-            // Authentication successful
-        }
-    }, onError: { error in
-        print("Auth failed: \(error)")
-    })
-    .disposed(by: disposeBag)
-
-// Authenticate with passcode fallback
-Services.biometric.authenticateWithPasscode()
-    .subscribe(onNext: { success in
-        // Authenticated
-    })
-    .disposed(by: disposeBag)
-```
-
-**Dependencies**: 
-- LocalAuthentication (iOS framework)
 - RxSwift (6.0)
 
 ---
@@ -165,11 +117,10 @@ User Photo → PhotoService → EncryptionService → KeychainService
 
 ### Security Features:
 1. **AES-256-GCM Encryption**: Military-grade authenticated encryption (Apple CryptoKit)
-2. **Random Nonce**: Each photo encrypted with unique nonce (automatically generated)
+2. **Random Nonce**: Each photo encrypted with unique nonce
 3. **Authentication Tag**: Built-in data integrity verification
 4. **Keychain Storage**: Encryption keys stored in iOS Keychain
-5. **Biometric Protection**: Optional Face ID/Touch ID authentication
-6. **Local-Only**: All data stays on device, never sent to servers
+5. **Local-Only**: All data stays on device, never sent to servers
 
 ---
 
@@ -179,33 +130,9 @@ User Photo → PhotoService → EncryptionService → KeychainService
 |---------|---------|---------|
 | RxSwift | 6.0 | Reactive programming |
 | RxCocoa | 6.0 | Cocoa-specific reactive extensions |
-| RxRelay | 6.0 | Relay wrappers |
 | KeychainAccess | ~> 4.2 | Simplified keychain wrapper |
 | CryptoKit | Built-in (iOS 13+) | Apple's encryption framework |
 | Kingfisher | ~> 7.0 | Image processing |
-| SnapKit | ~> 5.0 | Auto Layout DSL |
-| SwiftDate | ~> 7.0 | Date utilities |
-
----
-
-## 🎯 Usage Pattern
-
-All services follow the singleton pattern and use RxSwift Observables:
-
-```swift
-// Access via Services facade
-Services.photo.savePhoto(image)
-    .flatMap { filename in
-        // Chain operations
-        return Services.encryption.encryptString(metadata)
-    }
-    .subscribe(onNext: { result in
-        // Handle success
-    }, onError: { error in
-        // Handle error
-    })
-    .disposed(by: disposeBag)
-```
 
 ---
 

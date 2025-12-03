@@ -41,6 +41,7 @@ struct SearchBar: View {
     }
 }
 
+/*
 #Preview {
     VStack {
         SearchBar(text: .constant(""))
@@ -49,4 +50,4 @@ struct SearchBar: View {
     .padding()
     .background(Theme.Colors.background)
 }
-
+*/

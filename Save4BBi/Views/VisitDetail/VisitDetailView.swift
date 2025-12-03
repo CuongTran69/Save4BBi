@@ -7,21 +7,21 @@
 
 import SwiftUI
 import SwiftData
-import RxSwift
 
 struct VisitDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    
+
     let visit: MedicalVisit
-    
+
     @State private var showingDeleteAlert = false
     @State private var showingEditView = false
     @State private var loadedImages: [UIImage] = []
     @State private var isLoadingImages = false
-    
+    @State private var showingFullScreenPhoto = false
+    @State private var selectedPhotoIndex = 0
+
     private let photoService = PhotoService.shared
-    private let disposeBag = DisposeBag()
     
     var body: some View {
         ScrollView {
@@ -83,6 +83,9 @@ struct VisitDetailView: View {
         .sheet(isPresented: $showingEditView) {
             EditVisitView(visit: visit)
         }
+        .fullScreenCover(isPresented: $showingFullScreenPhoto) {
+            FullScreenPhotoViewer(images: loadedImages, initialIndex: selectedPhotoIndex)
+        }
         .onAppear {
             loadPhotos()
         }
@@ -130,10 +133,18 @@ struct VisitDetailView: View {
     // MARK: - Photos Section
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Photos (\(visit.photoCount))")
-                .font(Theme.Typography.title3)
-                .foregroundColor(Theme.Colors.text)
-            
+            HStack {
+                Text("Photos (\(visit.photoCount))")
+                    .font(Theme.Typography.title3)
+                    .foregroundColor(Theme.Colors.text)
+
+                Spacer()
+
+                Text("Tap to view")
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.text.opacity(0.5))
+            }
+
             if isLoadingImages {
                 HStack {
                     ProgressView()
@@ -153,6 +164,10 @@ struct VisitDetailView: View {
                                 .frame(width: 150, height: 150)
                                 .clipShape(RoundedRectangle(cornerRadius: Theme.CornerRadius.medium))
                                 .shadow(color: Theme.Colors.shadow, radius: 4, x: 0, y: 2)
+                                .onTapGesture {
+                                    selectedPhotoIndex = index
+                                    showingFullScreenPhoto = true
+                                }
                         }
                     }
                 }
@@ -244,13 +259,19 @@ struct VisitDetailView: View {
     }
 
     private func deleteVisit() {
-        // Delete photos from file system first
-        for filename in visit.photoFilePaths {
-            photoService.deletePhoto(filename: filename)
-                .subscribe()
-                .disposed(by: disposeBag)
+        // Delete photos from file system first using Task
+        Task {
+            for filename in visit.photoFilePaths {
+                _ = try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    _ = photoService.deletePhoto(filename: filename)
+                        .subscribe(
+                            onNext: { continuation.resume(returning: ()) },
+                            onError: { error in continuation.resume(throwing: error) }
+                        )
+                }
+            }
         }
-        
+
         modelContext.delete(visit)
 
         do {
@@ -260,32 +281,38 @@ struct VisitDetailView: View {
             print("Error deleting visit: \(error)")
         }
     }
-    
+
     // MARK: - Load Photos
     private func loadPhotos() {
+        // Guard: skip if no photos or already loaded
         guard !visit.photoFilePaths.isEmpty else { return }
-        
+        guard loadedImages.isEmpty else { return }
+
         isLoadingImages = true
-        loadedImages = []
-        
-        let photoObservables = visit.photoFilePaths.map { filename in
-            photoService.loadPhoto(filename: filename)
-        }
-        
-        Observable.concat(photoObservables)
-            .observe(on: MainScheduler.instance)
-            .subscribe(
-                onNext: { image in
-                    self.loadedImages.append(image)
-                },
-                onError: { error in
+
+        Task {
+            var images: [UIImage] = []
+
+            for filename in visit.photoFilePaths {
+                do {
+                    let image = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<UIImage, Error>) in
+                        _ = photoService.loadPhoto(filename: filename)
+                            .subscribe(
+                                onNext: { image in continuation.resume(returning: image) },
+                                onError: { error in continuation.resume(throwing: error) }
+                            )
+                    }
+                    images.append(image)
+                } catch {
                     print("Error loading photo: \(error)")
-                },
-                onCompleted: {
-                    self.isLoadingImages = false
                 }
-            )
-            .disposed(by: disposeBag)
+            }
+
+            await MainActor.run {
+                loadedImages = images
+                isLoadingImages = false
+            }
+        }
     }
 }
 
@@ -317,9 +344,9 @@ struct InfoRow: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        VisitDetailView(visit: .sample)
-    }
-    .modelContainer(for: MedicalVisit.self, inMemory: true)
-}
+// #Preview {
+//     NavigationStack {
+//         VisitDetailView(visit: .sample)
+//     }
+//     .modelContainer(for: MedicalVisit.self, inMemory: true)
+// }

@@ -11,24 +11,21 @@ import RxSwift
 
 /// Service for biometric authentication (Face ID / Touch ID)
 final class BiometricService {
-    
+
     // MARK: - Singleton
     static let shared = BiometricService()
-    
-    // MARK: - Properties
-    private let context = LAContext()
-    
+
     // MARK: - Initialization
     private init() {}
-    
+
     // MARK: - Biometric Type
-    
+
     enum BiometricType {
         case none
         case touchID
         case faceID
         case opticID
-        
+
         var displayName: String {
             switch self {
             case .none:
@@ -41,7 +38,7 @@ final class BiometricService {
                 return "Optic ID"
             }
         }
-        
+
         var icon: String {
             switch self {
             case .none:
@@ -55,17 +52,19 @@ final class BiometricService {
             }
         }
     }
-    
+
     // MARK: - Availability Check
-    
+
     /// Check if biometric authentication is available
+    /// Note: Creates a fresh LAContext each time to avoid stale state
     func biometricType() -> BiometricType {
+        let context = LAContext()
         var error: NSError?
-        
+
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
             return .none
         }
-        
+
         switch context.biometryType {
         case .none:
             return .none
@@ -79,7 +78,7 @@ final class BiometricService {
             return .none
         }
     }
-    
+
     /// Check if any biometric is available
     var isBiometricAvailable: Bool {
         return biometricType() != .none

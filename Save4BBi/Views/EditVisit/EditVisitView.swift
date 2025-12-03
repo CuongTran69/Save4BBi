@@ -8,14 +8,13 @@
 import SwiftUI
 import PhotosUI
 import SwiftData
-import RxSwift
 
 struct EditVisitView: View {
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    
+    @Environment(\.modelContext) private var modelContext
+
     let visit: MedicalVisit
-    
+
     @State private var title: String
     @State private var condition: String
     @State private var doctorName: String
@@ -25,15 +24,16 @@ struct EditVisitView: View {
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var photoImages: [UIImage] = []
     @State private var existingPhotoFilePaths: [String]
+    @State private var existingPhotoImages: [String: UIImage] = [:]  // filename -> image
+    @State private var isLoadingExistingPhotos = false
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showError = false
-    
+
     private let photoService = PhotoService.shared
-    private let disposeBag = DisposeBag()
-    
+
     let availableTags = ["Checkup", "Vaccination", "Emergency", "Dental", "Fever", "Routine"]
-    
+
     init(visit: MedicalVisit) {
         self.visit = visit
         _title = State(initialValue: visit.title)
@@ -109,8 +109,11 @@ struct EditVisitView: View {
                 }
             }
         }
+        .onAppear {
+            loadExistingPhotos()
+        }
     }
-    
+
     // MARK: - Photo Picker Section
     private var photoPickerSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
@@ -175,11 +178,106 @@ struct EditVisitView: View {
                 }
             }
             
-            // Existing photos count
+            // Existing photos with delete option
             if !existingPhotoFilePaths.isEmpty {
-                Text("\(existingPhotoFilePaths.count) existing photo(s)")
-                    .font(Theme.Typography.caption)
-                    .foregroundColor(Theme.Colors.text.opacity(0.6))
+                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    Text("Existing Photos (\(existingPhotoFilePaths.count))")
+                        .font(Theme.Typography.caption)
+                        .foregroundColor(Theme.Colors.text.opacity(0.6))
+
+                    if isLoadingExistingPhotos {
+                        HStack {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
+                            Text("Loading...")
+                                .font(Theme.Typography.caption)
+                                .foregroundColor(Theme.Colors.text.opacity(0.6))
+                        }
+                        .frame(height: 80)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: Theme.Spacing.sm) {
+                                ForEach(existingPhotoFilePaths, id: \.self) { filename in
+                                    ZStack(alignment: .topTrailing) {
+                                        if let image = existingPhotoImages[filename] {
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 80, height: 80)
+                                                .clipShape(RoundedRectangle(cornerRadius: Theme.CornerRadius.small))
+                                        } else {
+                                            RoundedRectangle(cornerRadius: Theme.CornerRadius.small)
+                                                .fill(Theme.Colors.cardBackground)
+                                                .frame(width: 80, height: 80)
+                                                .overlay {
+                                                    Image(systemName: "photo")
+                                                        .foregroundColor(Theme.Colors.text.opacity(0.3))
+                                                }
+                                        }
+
+                                        // Delete button
+                                        Button {
+                                            removeExistingPhoto(filename: filename)
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.system(size: 22))
+                                                .foregroundColor(.white)
+                                                .background(Color.red.clipShape(Circle()))
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Remove Existing Photo
+    private func removeExistingPhoto(filename: String) {
+        // Delete from file system
+        Task {
+            _ = try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                _ = photoService.deletePhoto(filename: filename)
+                    .subscribe(
+                        onNext: { continuation.resume(returning: ()) },
+                        onError: { error in continuation.resume(throwing: error) }
+                    )
+            }
+        }
+
+        // Remove from state
+        existingPhotoFilePaths.removeAll { $0 == filename }
+        existingPhotoImages.removeValue(forKey: filename)
+    }
+
+    // MARK: - Load Existing Photos
+    private func loadExistingPhotos() {
+        guard !existingPhotoFilePaths.isEmpty else { return }
+
+        isLoadingExistingPhotos = true
+
+        Task {
+            for filename in existingPhotoFilePaths {
+                do {
+                    let image = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<UIImage, Error>) in
+                        _ = photoService.loadPhoto(filename: filename)
+                            .subscribe(
+                                onNext: { image in continuation.resume(returning: image) },
+                                onError: { error in continuation.resume(throwing: error) }
+                            )
+                    }
+                    await MainActor.run {
+                        existingPhotoImages[filename] = image
+                    }
+                } catch {
+                    print("Error loading existing photo: \(error)")
+                }
+            }
+            await MainActor.run {
+                isLoadingExistingPhotos = false
             }
         }
     }
@@ -273,35 +371,41 @@ struct EditVisitView: View {
     private func saveChanges() {
         guard !isSaving else { return }
         isSaving = true
-        
+
         // If no new photos, update visit directly
         if photoImages.isEmpty {
             updateVisit(newPhotoFilePaths: [])
             return
         }
-        
-        // Save new photos with encryption
-        var savedFilenames: [String] = []
-        let photoObservables = photoImages.map { image in
-            photoService.savePhoto(image)
-        }
-        
-        Observable.concat(photoObservables)
-            .observe(on: MainScheduler.instance)
-            .subscribe(
-                onNext: { filename in
+
+        // Save new photos with encryption using async/await
+        Task {
+            var savedFilenames: [String] = []
+
+            for image in photoImages {
+                do {
+                    let filename = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
+                        _ = photoService.savePhoto(image)
+                            .subscribe(
+                                onNext: { filename in continuation.resume(returning: filename) },
+                                onError: { error in continuation.resume(throwing: error) }
+                            )
+                    }
                     savedFilenames.append(filename)
-                },
-                onError: { error in
-                    self.isSaving = false
-                    self.errorMessage = "Failed to save photos: \(error.localizedDescription)"
-                    self.showError = true
-                },
-                onCompleted: {
-                    self.updateVisit(newPhotoFilePaths: savedFilenames)
+                } catch {
+                    await MainActor.run {
+                        isSaving = false
+                        errorMessage = "Failed to save photos: \(error.localizedDescription)"
+                        showError = true
+                    }
+                    return
                 }
-            )
-            .disposed(by: disposeBag)
+            }
+
+            await MainActor.run {
+                updateVisit(newPhotoFilePaths: savedFilenames)
+            }
+        }
     }
     
     private func updateVisit(newPhotoFilePaths: [String]) {
@@ -329,7 +433,7 @@ struct EditVisitView: View {
     }
 }
 
-#Preview {
-    EditVisitView(visit: .sample)
-        .modelContainer(for: MedicalVisit.self, inMemory: true)
-}
+// #Preview {
+//     EditVisitView(visit: .sample)
+//         .modelContainer(for: MedicalVisit.self, inMemory: true)
+// }

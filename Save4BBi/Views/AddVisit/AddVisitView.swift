@@ -11,8 +11,8 @@ import SwiftData
 import RxSwift
 
 struct AddVisitView: View {
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     
     @State private var title = ""
     @State private var condition = ""
@@ -255,7 +255,7 @@ struct AddVisitView: View {
         
         // If no photos, save visit directly
         if photoImages.isEmpty {
-            saveVisitToDatabase(photoFilePaths: [])
+            saveVisitToDatabase(savedPhotoFilenames: [])
             return
         }
         
@@ -277,25 +277,26 @@ struct AddVisitView: View {
                     self.showError = true
                 },
                 onCompleted: {
-                    self.saveVisitToDatabase(photoFilePaths: savedFilenames)
+                    self.saveVisitToDatabase(savedPhotoFilenames: savedFilenames)
                 }
             )
             .disposed(by: disposeBag)
     }
     
-    private func saveVisitToDatabase(photoFilePaths: [String]) {
+    private func saveVisitToDatabase(savedPhotoFilenames: [String]) {
+        // Create new visit
         let visit = MedicalVisit(
             title: title,
             condition: condition,
             doctorName: doctorName,
             notes: notes,
             visitDate: visitDate,
-            photoFilePaths: photoFilePaths,
+            photoFilePaths: savedPhotoFilenames,
             tags: Array(selectedTags)
         )
-
+        
         modelContext.insert(visit)
-
+        
         do {
             try modelContext.save()
             isSaving = false
@@ -351,7 +352,7 @@ struct TagButton: View {
 
 // FlowLayout is now imported from Components/FlowLayout.swift
 
-#Preview {
-    AddVisitView()
-        .modelContainer(for: MedicalVisit.self, inMemory: true)
-}
+// #Preview {
+//     AddVisitView()
+//         .modelContainer(for: MedicalVisit.self, inMemory: true)
+// }

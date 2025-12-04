@@ -16,18 +16,32 @@ enum ViewMode {
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MedicalVisit.visitDate, order: .reverse) private var visits: [MedicalVisit]
+    @Query(sort: \Child.createdAt) private var children: [Child]
     @ObservedObject private var languageManager = LanguageManager.shared
+    @ObservedObject private var childManager = ChildManager.shared
 
     @State private var searchText = ""
     @State private var viewMode: ViewMode = .grid
     @State private var showingAddVisit = false
     @State private var showingFilterSheet = false
     @State private var showingSettings = false
+    @State private var showingChildProfiles = false
     @State private var filterOptions = FilterOptions()
+
+    // Get selected child
+    private var selectedChild: Child? {
+        guard let selectedId = childManager.selectedChildId else { return nil }
+        return children.first { $0.id == selectedId }
+    }
 
     var filteredVisits: [MedicalVisit] {
         var result = visits
-        
+
+        // Apply child filter
+        if let selectedChildId = childManager.selectedChildId {
+            result = result.filter { $0.childProfileId == selectedChildId }
+        }
+
         // Apply search filter
         if !searchText.isEmpty {
             result = result.filter { visit in
@@ -37,7 +51,7 @@ struct HomeView: View {
                 visit.notes.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
+
         // Apply date range filter
         if let startDate = filterOptions.startDate {
             result = result.filter { $0.visitDate >= startDate }
@@ -45,14 +59,14 @@ struct HomeView: View {
         if let endDate = filterOptions.endDate {
             result = result.filter { $0.visitDate <= endDate }
         }
-        
+
         // Apply tag filter
         if !filterOptions.selectedTags.isEmpty {
             result = result.filter { visit in
                 !Set(visit.tags).isDisjoint(with: filterOptions.selectedTags)
             }
         }
-        
+
         // Apply sort
         switch filterOptions.sortOption {
         case .dateNewest:
@@ -64,7 +78,7 @@ struct HomeView: View {
         case .conditionZA:
             result.sort { $0.condition > $1.condition }
         }
-        
+
         return result
     }
     
@@ -123,6 +137,9 @@ struct HomeView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showingChildProfiles) {
+            ChildProfilesView()
+        }
     }
 
     // MARK: - Header View
@@ -146,6 +163,10 @@ struct HomeView: View {
                 }
             }
             .padding(.horizontal, Theme.Spacing.md)
+
+            // Child Selector
+            childSelectorView
+                .padding(.horizontal, Theme.Spacing.md)
 
             // Search bar
             SearchBar(text: $searchText, placeholder: languageManager.localized("home.search"))
@@ -205,5 +226,84 @@ struct HomeView: View {
         }
         .padding(.top, Theme.Spacing.sm)
         .background(Theme.Colors.background)
+    }
+
+    // MARK: - Child Selector View
+    private var childSelectorView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Theme.Spacing.sm) {
+                // "All" button
+                Button {
+                    withAnimation { childManager.clearSelection() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption)
+                        Text(languageManager.localized("child.all"))
+                            .font(Theme.Typography.caption)
+                    }
+                    .padding(.horizontal, Theme.Spacing.md)
+                    .padding(.vertical, Theme.Spacing.sm)
+                    .background(childManager.selectedChildId == nil ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                    .foregroundColor(childManager.selectedChildId == nil ? .white : Theme.Colors.text)
+                    .cornerRadius(Theme.CornerRadius.round)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
+                            .stroke(Theme.Colors.primary.opacity(0.3), lineWidth: 1)
+                    )
+                }
+
+                // Child buttons
+                ForEach(children) { child in
+                    Button {
+                        withAnimation { childManager.selectChild(child) }
+                    } label: {
+                        HStack(spacing: 6) {
+                            childAvatarView(child)
+                            Text(child.name)
+                                .font(Theme.Typography.caption)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, Theme.Spacing.md)
+                        .padding(.vertical, Theme.Spacing.sm)
+                        .background(childManager.isSelected(child) ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                        .foregroundColor(childManager.isSelected(child) ? .white : Theme.Colors.text)
+                        .cornerRadius(Theme.CornerRadius.round)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
+                                .stroke(Theme.Colors.primary.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                }
+
+                // Add child button
+                Button {
+                    showingChildProfiles = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.caption)
+                        .foregroundColor(Theme.Colors.primary)
+                        .frame(width: 28, height: 28)
+                        .background(Theme.Colors.primary.opacity(0.1))
+                        .clipShape(Circle())
+                }
+            }
+        }
+    }
+
+    private func childAvatarView(_ child: Child) -> some View {
+        Group {
+            if let avatarData = child.avatarData, let uiImage = UIImage(data: avatarData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Text(child.avatarIcon)
+                    .font(.caption2)
+            }
+        }
+        .frame(width: 20, height: 20)
+        .background(Theme.Colors.primary.opacity(0.2))
+        .clipShape(Circle())
     }
 }

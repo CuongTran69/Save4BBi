@@ -24,6 +24,6 @@ struct Save4BBiApp: App {
             }
             .animation(.easeInOut(duration: 0.3), value: showHome)
         }
-        .modelContainer(for: MedicalVisit.self)
+        .modelContainer(for: [MedicalVisit.self, Child.self])
     }
 }

@@ -13,7 +13,9 @@ import RxSwift
 struct AddVisitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Child.createdAt) private var children: [Child]
     @ObservedObject private var lang = LanguageManager.shared
+    @ObservedObject private var childManager = ChildManager.shared
 
     @State private var title = ""
     @State private var condition = ""
@@ -26,6 +28,7 @@ struct AddVisitView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showError = false
+    @State private var selectedChildId: UUID?
 
     private let photoService = PhotoService.shared
     private let disposeBag = DisposeBag()
@@ -37,15 +40,18 @@ struct AddVisitView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
+                    // Child Selector Section
+                    childSelectorSection
+
                     // Photo Picker Section
                     photoPickerSection
-                    
+
                     // Basic Information
                     basicInfoSection
-                    
+
                     // Tags Section
                     tagsSection
-                    
+
                     // Notes Section
                     notesSection
                 }
@@ -55,6 +61,10 @@ struct AddVisitView: View {
             .background(Theme.Colors.background)
             .navigationTitle(lang.localized("visit.add.title"))
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Default to currently selected child
+                selectedChildId = childManager.selectedChildId
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) {
@@ -99,6 +109,71 @@ struct AddVisitView: View {
         }
     }
     
+    // MARK: - Child Selector Section
+    private var childSelectorSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text(lang.localized("child.select"))
+                .font(Theme.Typography.title3)
+                .foregroundColor(Theme.Colors.text)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Theme.Spacing.sm) {
+                    ForEach(children) { child in
+                        Button {
+                            selectedChildId = child.id
+                        } label: {
+                            HStack(spacing: 8) {
+                                // Avatar
+                                childAvatarView(child)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(child.name)
+                                        .font(Theme.Typography.bodyBold)
+                                        .lineLimit(1)
+                                    Text(child.age)
+                                        .font(Theme.Typography.caption)
+                                        .opacity(0.7)
+                                }
+                            }
+                            .padding(.horizontal, Theme.Spacing.md)
+                            .padding(.vertical, Theme.Spacing.sm)
+                            .background(selectedChildId == child.id ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                            .foregroundColor(selectedChildId == child.id ? .white : Theme.Colors.text)
+                            .cornerRadius(Theme.CornerRadius.medium)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                                    .stroke(selectedChildId == child.id ? Theme.Colors.primary : Theme.Colors.divider, lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if children.isEmpty {
+                Text(lang.localized("child.empty"))
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.text.opacity(0.6))
+                    .padding(.top, Theme.Spacing.xs)
+            }
+        }
+    }
+
+    private func childAvatarView(_ child: Child) -> some View {
+        Group {
+            if let avatarData = child.avatarData, let uiImage = UIImage(data: avatarData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Text(child.avatarIcon)
+                    .font(.title3)
+            }
+        }
+        .frame(width: 36, height: 36)
+        .background(Theme.Colors.primary.opacity(0.2))
+        .clipShape(Circle())
+    }
+
     // MARK: - Photo Picker Section
     private var photoPickerSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
@@ -287,7 +362,7 @@ struct AddVisitView: View {
     }
     
     private func saveVisitToDatabase(savedPhotoFilenames: [String]) {
-        // Create new visit
+        // Create new visit with selected child profile
         let visit = MedicalVisit(
             title: title,
             condition: condition,
@@ -295,9 +370,10 @@ struct AddVisitView: View {
             notes: notes,
             visitDate: visitDate,
             photoFilePaths: savedPhotoFilenames,
-            tags: Array(selectedTags)
+            tags: Array(selectedTags),
+            childProfileId: selectedChildId
         )
-        
+
         modelContext.insert(visit)
         
         do {

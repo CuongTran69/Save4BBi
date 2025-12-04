@@ -152,6 +152,29 @@ struct LocalizedStrings {
         "error.save_photos": "Failed to save photos",
         "error.save_visit": "Failed to save visit",
         "error.ok": "OK",
+
+        // Child Profiles
+        "child.profiles": "Child Profiles",
+        "child.add": "Add Child",
+        "child.edit": "Edit Child",
+        "child.name": "Name",
+        "child.name.placeholder": "e.g., Baby John",
+        "child.dob": "Date of Birth",
+        "child.gender": "Gender",
+        "child.gender.male": "Male",
+        "child.gender.female": "Female",
+        "child.gender.other": "Other",
+        "child.blood_type": "Blood Type",
+        "child.blood_type.unknown": "Unknown",
+        "child.notes": "Notes",
+        "child.notes.placeholder": "Allergies, medical conditions...",
+        "child.all": "All Children",
+        "child.select": "Select Child",
+        "child.empty": "No child profiles yet. Add one in Settings.",
+        "child.delete.title": "Delete Child Profile",
+        "child.delete.message": "Are you sure you want to delete this child profile? All associated visits will remain but unlinked.",
+        "child.age": "Age",
+        "child.visits": "visits",
     ]
     
     // MARK: - Vietnamese Strings
@@ -238,6 +261,29 @@ struct LocalizedStrings {
         "error.save_photos": "Không thể lưu ảnh",
         "error.save_visit": "Không thể lưu lần khám",
         "error.ok": "OK",
+
+        // Child Profiles
+        "child.profiles": "Hồ Sơ Các Con",
+        "child.add": "Thêm Bé",
+        "child.edit": "Sửa Hồ Sơ",
+        "child.name": "Tên",
+        "child.name.placeholder": "VD: Bé Bống",
+        "child.dob": "Ngày Sinh",
+        "child.gender": "Giới Tính",
+        "child.gender.male": "Nam",
+        "child.gender.female": "Nữ",
+        "child.gender.other": "Khác",
+        "child.blood_type": "Nhóm Máu",
+        "child.blood_type.unknown": "Không rõ",
+        "child.notes": "Ghi Chú",
+        "child.notes.placeholder": "Dị ứng, bệnh mãn tính...",
+        "child.all": "Tất Cả",
+        "child.select": "Chọn Bé",
+        "child.empty": "Chưa có hồ sơ bé. Thêm trong Cài đặt.",
+        "child.delete.title": "Xóa Hồ Sơ",
+        "child.delete.message": "Bạn có chắc muốn xóa hồ sơ này? Các lần khám liên quan vẫn được giữ lại.",
+        "child.age": "Tuổi",
+        "child.visits": "lần khám",
     ]
 }
 

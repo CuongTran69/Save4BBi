@@ -13,7 +13,8 @@ import RxSwift
 struct AddVisitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    
+    @ObservedObject private var lang = LanguageManager.shared
+
     @State private var title = ""
     @State private var condition = ""
     @State private var doctorName = ""
@@ -25,11 +26,12 @@ struct AddVisitView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showError = false
-    
+
     private let photoService = PhotoService.shared
     private let disposeBag = DisposeBag()
-    
-    let availableTags = ["Checkup", "Vaccination", "Emergency", "Dental", "Fever", "Routine"]
+
+    // Tag keys for localization
+    private let tagKeys = ["tag.checkup", "tag.vaccination", "tag.emergency", "tag.dental", "tag.fever", "tag.routine"]
     
     var body: some View {
         NavigationStack {
@@ -51,25 +53,25 @@ struct AddVisitView: View {
             }
             .dismissKeyboardOnTap()
             .background(Theme.Colors.background)
-            .navigationTitle("New Visit")
+            .navigationTitle(lang.localized("visit.add.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(lang.localized("button.cancel")) {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(lang.localized("button.save")) {
                         saveVisit()
                     }
                     .disabled(!isFormValid || isSaving)
                 }
             }
         }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
+        .alert(lang.localized("error.title"), isPresented: $showError) {
+            Button(lang.localized("error.ok"), role: .cancel) { }
         } message: {
             Text(errorMessage ?? "An error occurred")
         }
@@ -78,13 +80,13 @@ struct AddVisitView: View {
                 ZStack {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
-                    
+
                     VStack(spacing: Theme.Spacing.md) {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
                             .scaleEffect(1.5)
-                        
-                        Text("Saving photos...")
+
+                        Text(lang.localized("visit.saving"))
                             .font(Theme.Typography.body)
                             .foregroundColor(Theme.Colors.text)
                     }
@@ -100,28 +102,28 @@ struct AddVisitView: View {
     // MARK: - Photo Picker Section
     private var photoPickerSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Photos")
+            Text(lang.localized("visit.photos.title"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
-            
+
             PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 10, matching: .images) {
                 HStack {
                     Image(systemName: "photo.on.rectangle.angled")
                         .font(.title2)
                         .foregroundColor(Theme.Colors.primary)
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Add Photos")
+                        Text(lang.localized("visit.photos.add"))
                             .font(Theme.Typography.bodyBold)
                             .foregroundColor(Theme.Colors.text)
-                        
-                        Text("Tap to select from gallery")
+
+                        Text(lang.localized("visit.photos.select"))
                             .font(Theme.Typography.caption)
                             .foregroundColor(Theme.Colors.text.opacity(0.6))
                     }
-                    
+
                     Spacer()
-                    
+
                     if !selectedPhotos.isEmpty {
                         Text("\(selectedPhotos.count)")
                             .font(Theme.Typography.bodyBold)
@@ -145,7 +147,7 @@ struct AddVisitView: View {
                     }
                 }
             }
-            
+
             // Photo preview grid
             if !photoImages.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -166,26 +168,26 @@ struct AddVisitView: View {
     // MARK: - Basic Info Section
     private var basicInfoSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            Text("Visit Information")
+            Text(lang.localized("visit.info.title"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
-            
+
             VStack(spacing: Theme.Spacing.md) {
                 // Title
-                FormField(title: "Title", placeholder: "e.g., Annual Checkup", text: $title)
-                
+                FormField(title: lang.localized("visit.title"), placeholder: lang.localized("visit.title.placeholder"), text: $title)
+
                 // Condition (Required)
-                FormField(title: "Condition *", placeholder: "e.g., Fever, Vaccination", text: $condition)
-                
+                FormField(title: lang.localized("visit.condition.required"), placeholder: lang.localized("visit.condition.placeholder"), text: $condition)
+
                 // Doctor Name
-                FormField(title: "Doctor Name", placeholder: "e.g., Dr. Nguyễn Văn A", text: $doctorName)
-                
+                FormField(title: lang.localized("visit.doctor"), placeholder: lang.localized("visit.doctor.placeholder"), text: $doctorName)
+
                 // Visit Date
                 VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text("Visit Date")
+                    Text(lang.localized("visit.date"))
                         .font(Theme.Typography.subheadline)
                         .foregroundColor(Theme.Colors.text.opacity(0.7))
-                    
+
                     DatePicker("", selection: $visitDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .labelsHidden()
@@ -199,20 +201,21 @@ struct AddVisitView: View {
     // MARK: - Tags Section
     private var tagsSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Tags")
+            Text(lang.localized("visit.tags"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
             FlowLayout(spacing: Theme.Spacing.sm) {
-                ForEach(availableTags, id: \.self) { tag in
+                ForEach(tagKeys, id: \.self) { tagKey in
+                    let displayText = lang.localized(tagKey)
                     TagButton(
-                        text: tag,
-                        isSelected: selectedTags.contains(tag)
+                        text: displayText,
+                        isSelected: selectedTags.contains(tagKey)
                     ) {
-                        if selectedTags.contains(tag) {
-                            selectedTags.remove(tag)
+                        if selectedTags.contains(tagKey) {
+                            selectedTags.remove(tagKey)
                         } else {
-                            selectedTags.insert(tag)
+                            selectedTags.insert(tagKey)
                         }
                     }
                 }
@@ -225,7 +228,7 @@ struct AddVisitView: View {
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Notes")
+            Text(lang.localized("visit.notes"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
@@ -271,9 +274,9 @@ struct AddVisitView: View {
                 onNext: { filename in
                     savedFilenames.append(filename)
                 },
-                onError: { error in
+                onError: { [self] error in
                     self.isSaving = false
-                    self.errorMessage = "Failed to save photos: \(error.localizedDescription)"
+                    self.errorMessage = "\(lang.localized("error.save_photos")): \(error.localizedDescription)"
                     self.showError = true
                 },
                 onCompleted: {
@@ -303,7 +306,7 @@ struct AddVisitView: View {
             dismiss()
         } catch {
             isSaving = false
-            errorMessage = "Failed to save visit: \(error.localizedDescription)"
+            errorMessage = "\(lang.localized("error.save_visit")): \(error.localizedDescription)"
             showError = true
         }
     }

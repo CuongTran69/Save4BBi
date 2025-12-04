@@ -16,11 +16,13 @@ enum ViewMode {
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MedicalVisit.visitDate, order: .reverse) private var visits: [MedicalVisit]
+    @ObservedObject private var languageManager = LanguageManager.shared
 
     @State private var searchText = ""
     @State private var viewMode: ViewMode = .grid
     @State private var showingAddVisit = false
     @State private var showingFilterSheet = false
+    @State private var showingSettings = false
     @State private var filterOptions = FilterOptions()
 
     var filteredVisits: [MedicalVisit] {
@@ -118,22 +120,35 @@ struct HomeView: View {
         .sheet(isPresented: $showingFilterSheet) {
             FilterSheet(filterOptions: $filterOptions)
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
-    
+
     // MARK: - Header View
     private var headerView: some View {
         VStack(spacing: 12) {
-            // Title
+            // Title row with settings button
             HStack {
-                Text("Medical Visits")
+                Text(languageManager.localized("home.title"))
                     .font(.system(size: 34, weight: .bold))
                     .foregroundColor(Theme.Colors.text)
+
                 Spacer()
+
+                // Settings button
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title2)
+                        .foregroundColor(Theme.Colors.primary)
+                }
             }
             .padding(.horizontal, Theme.Spacing.md)
 
             // Search bar
-            SearchBar(text: $searchText)
+            SearchBar(text: $searchText, placeholder: languageManager.localized("home.search"))
                 .padding(.horizontal, Theme.Spacing.md)
 
             // View mode toggle and filter
@@ -175,7 +190,7 @@ struct HomeView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: filterOptions.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                        Text("Filter")
+                        Text(languageManager.localized("home.filter"))
                     }
                     .font(Theme.Typography.subheadline)
                     .foregroundColor(filterOptions.isActive ? .white : Theme.Colors.primary)

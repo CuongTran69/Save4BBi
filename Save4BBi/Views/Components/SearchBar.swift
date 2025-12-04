@@ -9,16 +9,17 @@ import SwiftUI
 
 struct SearchBar: View {
     @Binding var text: String
+    var placeholder: String = "Search visits, conditions, doctors..."
     @FocusState private var isFocused: Bool
-    
+
     var body: some View {
         HStack(spacing: Theme.Spacing.sm) {
             // Search icon
             Image(systemName: "magnifyingglass")
                 .foregroundColor(Theme.Colors.text.opacity(0.5))
-            
+
             // Text field
-            TextField("Search visits, conditions, doctors...", text: $text)
+            TextField(placeholder, text: $text)
                 .font(Theme.Typography.body)
                 .foregroundColor(Theme.Colors.text)
                 .focused($isFocused)

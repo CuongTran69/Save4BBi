@@ -16,6 +16,7 @@ struct VisitDetailView: View {
 
     @State private var showingDeleteAlert = false
     @State private var showingEditView = false
+    @State private var showingReminderSheet = false
     @State private var loadedImages: [UIImage] = []
     @State private var isLoadingImages = false
     @State private var showingFullScreenPhoto = false
@@ -23,6 +24,13 @@ struct VisitDetailView: View {
 
     @ObservedObject private var lang = LanguageManager.shared
     private let photoService = PhotoService.shared
+
+    // Member for this visit
+    @Query private var members: [FamilyMember]
+    private var member: FamilyMember? {
+        guard let memberId = visit.memberId else { return nil }
+        return members.first { $0.id == memberId }
+    }
     
     var body: some View {
         ScrollView {
@@ -57,11 +65,17 @@ struct VisitDetailView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
+                        showingReminderSheet = true
+                    } label: {
+                        Label(lang.localized("reminder.title"), systemImage: "bell.badge")
+                    }
+
+                    Button {
                         showingEditView = true
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }
-                    
+
                     Button(role: .destructive) {
                         showingDeleteAlert = true
                     } label: {
@@ -83,6 +97,9 @@ struct VisitDetailView: View {
         }
         .sheet(isPresented: $showingEditView) {
             EditVisitView(visit: visit)
+        }
+        .sheet(isPresented: $showingReminderSheet) {
+            ReminderSheet(visit: visit, member: member)
         }
         .fullScreenCover(isPresented: $showingFullScreenPhoto) {
             FullScreenPhotoViewer(images: loadedImages, initialIndex: selectedPhotoIndex)

@@ -24,6 +24,6 @@ struct MediFamilyApp: App {
             }
             .animation(.easeInOut(duration: 0.3), value: showHome)
         }
-        .modelContainer(for: [MedicalVisit.self, FamilyMember.self])
+        .modelContainer(for: [MedicalVisit.self, FamilyMember.self, Reminder.self])
     }
 }

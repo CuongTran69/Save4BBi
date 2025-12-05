@@ -254,6 +254,30 @@ struct LocalizedStrings {
         "stats.avg_visits_month": "Avg/Month",
         "stats.health_summary": "Health Summary",
         "stats.no_visits_yet": "No visits recorded yet",
+
+        // Reminders
+        "reminder.title": "Set Reminder",
+        "reminder.follow_up": "Follow-up Reminder",
+        "reminder.select_time": "When to remind?",
+        "reminder.in_1_week": "In 1 week",
+        "reminder.in_2_weeks": "In 2 weeks",
+        "reminder.in_1_month": "In 1 month",
+        "reminder.in_3_months": "In 3 months",
+        "reminder.custom": "Custom date",
+        "reminder.set": "Set Reminder",
+        "reminder.cancel": "Cancel",
+        "reminder.success": "Reminder set!",
+        "reminder.success_message": "You'll be reminded on",
+        "reminder.permission_required": "Permission Required",
+        "reminder.permission_message": "Please enable notifications in Settings to receive reminders",
+        "reminder.open_settings": "Open Settings",
+        "reminder.notification_title": "Medical Follow-up",
+        "reminder.notification_body": "Time for follow-up visit",
+        "reminder.view_reminders": "View Reminders",
+        "reminder.no_reminders": "No reminders set",
+        "reminder.upcoming": "Upcoming Reminders",
+        "reminder.delete": "Delete Reminder",
+        "reminder.delete_confirm": "Are you sure you want to delete this reminder?",
     ]
     
     // MARK: - Vietnamese Strings
@@ -442,6 +466,30 @@ struct LocalizedStrings {
         "stats.avg_visits_month": "TB/Tháng",
         "stats.health_summary": "Tóm Tắt Sức Khỏe",
         "stats.no_visits_yet": "Chưa có lần khám nào",
+
+        // Reminders
+        "reminder.title": "Đặt Nhắc Nhở",
+        "reminder.follow_up": "Nhắc Tái Khám",
+        "reminder.select_time": "Nhắc nhở khi nào?",
+        "reminder.in_1_week": "Sau 1 tuần",
+        "reminder.in_2_weeks": "Sau 2 tuần",
+        "reminder.in_1_month": "Sau 1 tháng",
+        "reminder.in_3_months": "Sau 3 tháng",
+        "reminder.custom": "Chọn ngày",
+        "reminder.set": "Đặt Nhắc Nhở",
+        "reminder.cancel": "Hủy",
+        "reminder.success": "Đã đặt nhắc nhở!",
+        "reminder.success_message": "Bạn sẽ được nhắc vào",
+        "reminder.permission_required": "Cần Cấp Quyền",
+        "reminder.permission_message": "Vui lòng bật thông báo trong Cài đặt để nhận nhắc nhở",
+        "reminder.open_settings": "Mở Cài Đặt",
+        "reminder.notification_title": "Nhắc Tái Khám",
+        "reminder.notification_body": "Đến lúc tái khám rồi",
+        "reminder.view_reminders": "Xem Nhắc Nhở",
+        "reminder.no_reminders": "Chưa có nhắc nhở nào",
+        "reminder.upcoming": "Nhắc Nhở Sắp Tới",
+        "reminder.delete": "Xóa Nhắc Nhở",
+        "reminder.delete_confirm": "Bạn có chắc muốn xóa nhắc nhở này?",
     ]
 }
 

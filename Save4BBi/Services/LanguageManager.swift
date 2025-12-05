@@ -232,6 +232,28 @@ struct LocalizedStrings {
         "photo.source.camera.desc": "Use camera to capture",
         "photo.source.library": "Photo Library",
         "photo.source.library.desc": "Choose from gallery",
+
+        // Empty State
+        "empty.title": "No Medical Visits Yet",
+        "empty.description": "Tap the + button below to add your first medical visit record",
+
+        // Statistics
+        "stats.title": "Health Statistics",
+        "stats.overview": "Overview",
+        "stats.total_visits": "Total Visits",
+        "stats.total_members": "Family Members",
+        "stats.this_month": "This Month",
+        "stats.this_year": "This Year",
+        "stats.common_conditions": "Common Conditions",
+        "stats.recent_activity": "Recent Activity",
+        "stats.visits_by_member": "Visits by Member",
+        "stats.visits_by_month": "Visits by Month",
+        "stats.no_data": "No data available",
+        "stats.visits": "visits",
+        "stats.last_visit": "Last visit",
+        "stats.avg_visits_month": "Avg/Month",
+        "stats.health_summary": "Health Summary",
+        "stats.no_visits_yet": "No visits recorded yet",
     ]
     
     // MARK: - Vietnamese Strings
@@ -398,6 +420,28 @@ struct LocalizedStrings {
         "photo.source.camera.desc": "Dùng camera để chụp",
         "photo.source.library": "Thư Viện Ảnh",
         "photo.source.library.desc": "Chọn từ bộ sưu tập",
+
+        // Empty State
+        "empty.title": "Chưa Có Lần Khám Nào",
+        "empty.description": "Nhấn nút + bên dưới để thêm lần khám đầu tiên",
+
+        // Statistics
+        "stats.title": "Thống Kê Sức Khỏe",
+        "stats.overview": "Tổng Quan",
+        "stats.total_visits": "Tổng Lần Khám",
+        "stats.total_members": "Thành Viên",
+        "stats.this_month": "Tháng Này",
+        "stats.this_year": "Năm Nay",
+        "stats.common_conditions": "Bệnh Thường Gặp",
+        "stats.recent_activity": "Hoạt Động Gần Đây",
+        "stats.visits_by_member": "Khám Theo Thành Viên",
+        "stats.visits_by_month": "Khám Theo Tháng",
+        "stats.no_data": "Chưa có dữ liệu",
+        "stats.visits": "lần khám",
+        "stats.last_visit": "Lần khám cuối",
+        "stats.avg_visits_month": "TB/Tháng",
+        "stats.health_summary": "Tóm Tắt Sức Khỏe",
+        "stats.no_visits_yet": "Chưa có lần khám nào",
     ]
 }
 

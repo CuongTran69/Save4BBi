@@ -26,6 +26,7 @@ struct HomeView: View {
     @State private var showingFilterSheet = false
     @State private var showingSettings = false
     @State private var showingFamilyMembers = false
+    @State private var showingStatistics = false
     @State private var filterOptions = FilterOptions()
 
     // Get selected member
@@ -140,6 +141,9 @@ struct HomeView: View {
         .sheet(isPresented: $showingFamilyMembers) {
             FamilyMembersView()
         }
+        .sheet(isPresented: $showingStatistics) {
+            StatisticsView()
+        }
     }
 
     // MARK: - Header View
@@ -152,6 +156,15 @@ struct HomeView: View {
                     .foregroundColor(Theme.Colors.text)
 
                 Spacer()
+
+                // Statistics button
+                Button {
+                    showingStatistics = true
+                } label: {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.title2)
+                        .foregroundColor(Theme.Colors.accent)
+                }
 
                 // Settings button
                 Button {

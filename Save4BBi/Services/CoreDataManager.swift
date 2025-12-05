@@ -1,6 +1,6 @@
 //
 //  CoreDataManager.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 01/12/25.
 //

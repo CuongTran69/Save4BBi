@@ -1,11 +1,12 @@
 # 🎯 PHASE 1: REQUIREMENTS ANALYSIS
 
-**Project Name**: Save4BBi (Children's Medical Records Photo Album)  
-**Platform**: iOS Mobile Application  
-**Technology Stack**: SwiftUI, Swift  
-**Target Users**: Parents tracking their children's medical visits  
-**Core Purpose**: Secure, user-friendly photo album for organizing and searching medical visit photos  
-**Date**: 2025-11-20
+**Project Name**: MediFamily (Family Health Records Tracker)
+**Platform**: iOS Mobile Application
+**Technology Stack**: SwiftUI, SwiftData, Swift
+**Target Users**: Families tracking medical visits for all members (children, adults, seniors)
+**Core Purpose**: Secure, user-friendly app for organizing and searching medical visit photos for the whole family
+**Date**: 2025-12-05
+**Previous Name**: Save4BBi (renamed to support entire family)
 
 ---
 
@@ -13,23 +14,24 @@
 
 ### Security & Privacy Considerations
 Based on HIPAA best practices research (even though this is a personal app, security is critical):
-- **Data Encryption**: All photos and medical data must be encrypted at rest
+- **Data Encryption**: All photos and medical data encrypted at rest (AES-256-GCM)
 - **Local Storage**: Keep data on-device to avoid cloud privacy concerns (unless explicitly opted-in)
 - **Biometric Authentication**: Face ID/Touch ID for app access
 - **No Third-Party Access**: Ensure no unauthorized data sharing
 
 ### Technology Stack Validation
-- **SwiftUI**: Modern, declarative UI framework (iOS 15+)
-- **SwiftData/Core Data**: Local database for metadata storage
+- **SwiftUI**: Modern, declarative UI framework (iOS 16+)
+- **SwiftData**: Local database for metadata storage
 - **PhotoKit**: For photo management and access
 - **CryptoKit**: For encryption capabilities
-- **Combine**: For reactive data flow
+- **RxSwift**: For reactive data flow
 
 ### UI/UX Best Practices for Medical Apps
-- **Child-Friendly Design**: Soft colors, rounded corners, playful icons
+- **Family-Friendly Design**: Soft colors, rounded corners, intuitive icons
 - **Easy Navigation**: Simple, intuitive interface for quick access
-- **Visual Hierarchy**: Clear organization by date, condition, or visit
+- **Visual Hierarchy**: Clear organization by date, condition, member, or visit
 - **Accessibility**: Support for larger text, VoiceOver
+- **Multi-Language**: English and Vietnamese support
 
 ---
 
@@ -69,11 +71,15 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 - **FR-5.4**: WHEN a user exports data THE SYSTEM SHALL generate a PDF report with photos and metadata
 - **FR-5.5**: WHEN a user adds voice notes THE SYSTEM SHALL allow recording and playback of audio memos
 
-### FR-6: Child Profile Management
-- **FR-6.1**: WHEN a user has multiple children THE SYSTEM SHALL allow creating separate profiles for each child
-- **FR-6.2**: WHEN a user selects a child profile THE SYSTEM SHALL display only that child's medical visits
-- **FR-6.3**: WHEN a user adds a child THE SYSTEM SHALL collect name, date of birth, photo, and basic info
-- **FR-6.4**: WHEN a user views a child profile THE SYSTEM SHALL display health summary and visit statistics
+### FR-6: Family Member Management ✅ IMPLEMENTED
+- **FR-6.1**: WHEN a user has multiple family members THE SYSTEM SHALL allow creating separate profiles for each member
+- **FR-6.2**: WHEN a user selects a member profile THE SYSTEM SHALL display only that member's medical visits
+- **FR-6.3**: WHEN a user adds a member THE SYSTEM SHALL collect:
+  - Basic: name, date of birth, photo, gender, blood type, relationship
+  - Member Type: child 👶, adult 👨, senior 👴
+  - Adult/Senior fields: height, weight, chronic conditions, medications, insurance ID
+- **FR-6.4**: WHEN a user views a member profile THE SYSTEM SHALL display health summary and visit statistics
+- **FR-6.5**: WHEN a user views a member THE SYSTEM SHALL display BMI calculation (for adults/seniors with height & weight)
 
 ---
 
@@ -85,9 +91,10 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 - **NFR-1.3**: WHEN a user scrolls through photos THE SYSTEM SHALL maintain 60fps smooth scrolling
 
 ### NFR-2: Usability
-- **NFR-2.1**: WHEN a user interacts with the UI THE SYSTEM SHALL use child-friendly, cute design elements (soft pastels, rounded corners, playful icons)
+- **NFR-2.1**: WHEN a user interacts with the UI THE SYSTEM SHALL use family-friendly design elements (soft colors, rounded corners, intuitive icons)
 - **NFR-2.2**: WHEN a user navigates THE SYSTEM SHALL provide clear visual feedback for all interactions
 - **NFR-2.3**: WHEN a user needs help THE SYSTEM SHALL provide contextual tooltips and onboarding
+- **NFR-2.4**: WHEN a user changes language THE SYSTEM SHALL support runtime language switching (EN/VI)
 
 ### NFR-3: Security
 - **NFR-3.1**: WHEN a user stores data THE SYSTEM SHALL use iOS Keychain for encryption key storage
@@ -123,9 +130,11 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 8. **As a parent**, I want to set follow-up reminders, so that I don't miss important appointments
 9. **As a parent**, I want to export visit reports, so that I can share them with doctors or family members
 
-### Epic 4: Multi-Child Support
-10. **As a parent with multiple children**, I want separate profiles for each child, so that I can manage their medical records independently
-11. **As a parent**, I want to see health statistics for each child, so that I can track their overall health trends
+### Epic 4: Family Member Support ✅ IMPLEMENTED
+10. **As a family member**, I want separate profiles for each person (children, adults, seniors), so that I can manage their medical records independently
+11. **As a family member**, I want to see health statistics for each person, so that I can track their overall health trends
+12. **As a family member**, I want to record relationship types (Father, Mother, Child, Grandparents, etc.), so that I can organize by family structure
+13. **As an adult/senior**, I want to track chronic conditions and medications, so that I have a complete health profile
 
 ---
 
@@ -183,27 +192,34 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 
 ## 🚀 PROPOSED FEATURE SET
 
-### ✅ MVP Features (Phase 1)
+### ✅ MVP Features (Phase 1) - COMPLETED
 1. ✅ Add/Edit/Delete medical visit photos
 2. ✅ Basic metadata (date, title, condition, notes)
 3. ✅ Search by text (condition, title, notes)
-4. ✅ Filter by date range
+4. ✅ Filter by date range and tags
 5. ✅ Grid/List view toggle
-6. ✅ Biometric authentication
-7. ✅ Local encrypted storage
-8. ✅ Single child profile
+6. ✅ Biometric authentication (Face ID/Touch ID)
+7. ✅ Local encrypted storage (AES-256-GCM)
+8. ✅ Multi-language support (EN/VI runtime switching)
 
-### 🔮 Future Enhancements (Phase 2+)
-1. 🔮 Multiple child profiles
-2. 🔮 PDF attachment support
-3. 🔮 Voice notes
-4. 🔮 Reminder notifications
-5. 🔮 Export to PDF report
-6. 🔮 iCloud sync (optional)
-7. 🔮 Health statistics dashboard
-8. 🔮 Timeline visualization
-9. 🔮 Tags/Categories system
-10. 🔮 Share with family members
+### ✅ Phase 2 Features - COMPLETED (MediFamily Update)
+1. ✅ **Family Member Profiles** - Support for children, adults, and seniors
+2. ✅ **Member Types** - child 👶, adult 👨, senior 👴 with appropriate icons
+3. ✅ **Relationships** - Father, Mother, Child, Grandparents, Spouse, Sibling
+4. ✅ **Adult/Senior Fields** - Height, Weight, BMI, Chronic conditions, Medications, Insurance ID
+5. ✅ **Member Filtering** - Filter visits by family member
+6. ✅ **New Branding** - MediFamily with family-oriented design
+
+### 🔮 Future Enhancements (Phase 3+)
+1. 🔮 PDF attachment support (lab results, prescriptions)
+2. 🔮 Voice notes
+3. 🔮 Reminder notifications for follow-ups
+4. 🔮 Export to PDF report
+5. 🔮 iCloud sync (optional backup)
+6. 🔮 Health statistics dashboard
+7. 🔮 Timeline visualization
+8. 🔮 Share with doctors/family members
+9. 🔮 Apple Health integration
 
 ---
 
@@ -233,19 +249,55 @@ The requirements analysis is complete when:
 
 ---
 
-## ❓ CLARIFICATION QUESTIONS
+## 📁 PROJECT STRUCTURE (MediFamily)
 
-Before proceeding to Phase 2 (Specification Generation), please confirm:
-
-1. **Child Profiles**: Should MVP support multiple children, or start with single child and add multi-child in Phase 2?
-2. **Cloud Backup**: Do you want iCloud sync in MVP, or keep it fully local-first?
-3. **Document Attachments**: Should MVP support PDF attachments (lab results), or photos only?
-4. **Language**: Should the app support Vietnamese language, or English only?
-5. **Sharing**: Do you need ability to share visit reports with doctors/family in MVP?
+```
+MediFamily/
+├── MediFamilyApp.swift           # App entry point
+├── ContentView.swift
+├── Models/
+│   ├── FamilyMember.swift        # Member model with MemberType, Relationship enums
+│   └── MedicalVisit.swift        # Visit model linked to memberId
+├── Views/
+│   ├── SplashScreenView.swift
+│   ├── Home/HomeView.swift
+│   ├── AddVisit/AddVisitView.swift
+│   ├── EditVisit/EditVisitView.swift
+│   ├── VisitDetail/VisitDetailView.swift
+│   ├── FamilyMembers/
+│   │   ├── FamilyMembersView.swift
+│   │   └── AddMemberView.swift
+│   ├── Settings/SettingsView.swift
+│   └── Components/
+├── Services/
+│   ├── BiometricService.swift
+│   ├── EncryptionService.swift
+│   ├── LanguageManager.swift     # EN/VI localization
+│   ├── MemberManager.swift       # Member selection management
+│   └── PhotoService.swift
+└── Utilities/
+    └── Theme.swift
+```
 
 ---
 
-**🎯 PHASE 1 COMPLETE - AWAITING YOUR APPROVAL**
+## 🎯 IMPLEMENTATION STATUS
 
-Please review the requirements analysis and provide feedback to proceed to **Phase 2: Specification Generation**.
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Photo Management | ✅ Done | Add, view, delete with encryption |
+| Search & Filter | ✅ Done | By text, date, tags |
+| Biometric Auth | ✅ Done | Face ID/Touch ID |
+| Encryption | ✅ Done | AES-256-GCM |
+| Multi-language | ✅ Done | EN/VI runtime toggle |
+| Family Members | ✅ Done | Child/Adult/Senior types |
+| Member Relationships | ✅ Done | Father, Mother, etc. |
+| Adult Health Fields | ✅ Done | Height, Weight, BMI, etc. |
+| Member Filtering | ✅ Done | Filter visits by member |
+
+---
+
+**🎯 PHASE 2 COMPLETE - MEDIFAMILY READY**
+
+The app has been successfully transformed from Save4BBi (children-only) to MediFamily (whole family support).
 

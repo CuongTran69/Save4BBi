@@ -1,6 +1,6 @@
 //
 //  HomeView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -16,30 +16,30 @@ enum ViewMode {
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MedicalVisit.visitDate, order: .reverse) private var visits: [MedicalVisit]
-    @Query(sort: \Child.createdAt) private var children: [Child]
+    @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
     @ObservedObject private var languageManager = LanguageManager.shared
-    @ObservedObject private var childManager = ChildManager.shared
+    @ObservedObject private var memberManager = MemberManager.shared
 
     @State private var searchText = ""
     @State private var viewMode: ViewMode = .grid
     @State private var showingAddVisit = false
     @State private var showingFilterSheet = false
     @State private var showingSettings = false
-    @State private var showingChildProfiles = false
+    @State private var showingFamilyMembers = false
     @State private var filterOptions = FilterOptions()
 
-    // Get selected child
-    private var selectedChild: Child? {
-        guard let selectedId = childManager.selectedChildId else { return nil }
-        return children.first { $0.id == selectedId }
+    // Get selected member
+    private var selectedMember: FamilyMember? {
+        guard let selectedId = memberManager.selectedMemberId else { return nil }
+        return members.first { $0.id == selectedId }
     }
 
     var filteredVisits: [MedicalVisit] {
         var result = visits
 
-        // Apply child filter
-        if let selectedChildId = childManager.selectedChildId {
-            result = result.filter { $0.childProfileId == selectedChildId }
+        // Apply member filter
+        if let selectedMemberId = memberManager.selectedMemberId {
+            result = result.filter { $0.memberId == selectedMemberId }
         }
 
         // Apply search filter
@@ -137,8 +137,8 @@ struct HomeView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
-        .sheet(isPresented: $showingChildProfiles) {
-            ChildProfilesView()
+        .sheet(isPresented: $showingFamilyMembers) {
+            FamilyMembersView()
         }
     }
 
@@ -164,8 +164,8 @@ struct HomeView: View {
             }
             .padding(.horizontal, Theme.Spacing.md)
 
-            // Child Selector
-            childSelectorView
+            // Member Selector
+            memberSelectorView
                 .padding(.horizontal, Theme.Spacing.md)
 
             // Search bar
@@ -228,24 +228,24 @@ struct HomeView: View {
         .background(Theme.Colors.background)
     }
 
-    // MARK: - Child Selector View
-    private var childSelectorView: some View {
+    // MARK: - Member Selector View
+    private var memberSelectorView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Theme.Spacing.sm) {
                 // "All" button
                 Button {
-                    withAnimation { childManager.clearSelection() }
+                    withAnimation { memberManager.clearSelection() }
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "person.2.fill")
+                        Image(systemName: "person.3.fill")
                             .font(.caption)
-                        Text(languageManager.localized("child.all"))
+                        Text(languageManager.localized("member.all"))
                             .font(Theme.Typography.caption)
                     }
                     .padding(.horizontal, Theme.Spacing.md)
                     .padding(.vertical, Theme.Spacing.sm)
-                    .background(childManager.selectedChildId == nil ? Theme.Colors.primary : Theme.Colors.cardBackground)
-                    .foregroundColor(childManager.selectedChildId == nil ? .white : Theme.Colors.text)
+                    .background(memberManager.selectedMemberId == nil ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                    .foregroundColor(memberManager.selectedMemberId == nil ? .white : Theme.Colors.text)
                     .cornerRadius(Theme.CornerRadius.round)
                     .overlay(
                         RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
@@ -253,21 +253,21 @@ struct HomeView: View {
                     )
                 }
 
-                // Child buttons
-                ForEach(children) { child in
+                // Member buttons
+                ForEach(members) { member in
                     Button {
-                        withAnimation { childManager.selectChild(child) }
+                        withAnimation { memberManager.selectMember(member) }
                     } label: {
                         HStack(spacing: 6) {
-                            childAvatarView(child)
-                            Text(child.name)
+                            memberAvatarView(member)
+                            Text(member.name)
                                 .font(Theme.Typography.caption)
                                 .lineLimit(1)
                         }
                         .padding(.horizontal, Theme.Spacing.md)
                         .padding(.vertical, Theme.Spacing.sm)
-                        .background(childManager.isSelected(child) ? Theme.Colors.primary : Theme.Colors.cardBackground)
-                        .foregroundColor(childManager.isSelected(child) ? .white : Theme.Colors.text)
+                        .background(memberManager.isSelected(member) ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                        .foregroundColor(memberManager.isSelected(member) ? .white : Theme.Colors.text)
                         .cornerRadius(Theme.CornerRadius.round)
                         .overlay(
                             RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
@@ -276,9 +276,9 @@ struct HomeView: View {
                     }
                 }
 
-                // Add child button
+                // Add member button
                 Button {
-                    showingChildProfiles = true
+                    showingFamilyMembers = true
                 } label: {
                     Image(systemName: "plus")
                         .font(.caption)
@@ -291,14 +291,14 @@ struct HomeView: View {
         }
     }
 
-    private func childAvatarView(_ child: Child) -> some View {
+    private func memberAvatarView(_ member: FamilyMember) -> some View {
         Group {
-            if let avatarData = child.avatarData, let uiImage = UIImage(data: avatarData) {
+            if let avatarData = member.avatarData, let uiImage = UIImage(data: avatarData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
             } else {
-                Text(child.avatarIcon)
+                Text(member.avatarIcon)
                     .font(.caption2)
             }
         }

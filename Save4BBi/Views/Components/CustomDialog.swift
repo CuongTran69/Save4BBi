@@ -1,6 +1,6 @@
 //
 //  CustomDialog.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 28/11/25.
 //
@@ -70,6 +70,7 @@ struct CustomDialog<Content: View>: View {
                         .font(Theme.Typography.body)
                         .foregroundColor(Theme.Colors.text.opacity(0.7))
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, Theme.Spacing.md)
                         .padding(.horizontal, Theme.Spacing.xl)
                 }

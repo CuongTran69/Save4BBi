@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -117,16 +117,16 @@ struct SettingsView: View {
     private var appLogoSection: some View {
         Section {
             VStack(spacing: 12) {
-                Image(systemName: "heart.text.square.fill")
+                Image(systemName: "cross.case.fill")
                     .font(.system(size: 60))
                     .foregroundColor(Theme.Colors.primary)
 
-                Text("Save4BBi")
+                Text("MediFamily")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(Theme.Colors.text)
 
-                Text("Medical Visit Tracker for Your Little One")
+                Text("Family Health Records Tracker")
                     .font(.caption)
                     .foregroundColor(Theme.Colors.text.opacity(0.6))
                     .multilineTextAlignment(.center)

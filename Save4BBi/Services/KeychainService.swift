@@ -1,6 +1,6 @@
 //
 //  KeychainService.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -17,12 +17,12 @@ final class KeychainService {
     
     // MARK: - Properties
     private let keychain: Keychain
-    private let encryptionKeyIdentifier = "com.save4bbi.encryptionKey"
+    private let encryptionKeyIdentifier = "com.mediFamily.encryptionKey"
     
     // MARK: - Initialization
     private init() {
         // Create keychain with service identifier
-        keychain = Keychain(service: "com.save4bbi.app")
+        keychain = Keychain(service: "com.mediFamily.app")
             .accessibility(.whenUnlockedThisDeviceOnly)
     }
     

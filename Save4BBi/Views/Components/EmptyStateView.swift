@@ -1,6 +1,6 @@
 //
 //  EmptyStateView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //

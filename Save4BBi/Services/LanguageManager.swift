@@ -1,6 +1,6 @@
 //
 //  LanguageManager.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -138,6 +138,8 @@ struct LocalizedStrings {
         "visit.saving": "Saving photos...",
         "visit.tags": "Tags",
         "visit.condition.required": "Condition *",
+        "edit.new.photos": "new photos",
+        "button.clear": "Clear",
 
         // Tags
         "tag.checkup": "Checkup",
@@ -153,28 +155,83 @@ struct LocalizedStrings {
         "error.save_visit": "Failed to save visit",
         "error.ok": "OK",
 
-        // Child Profiles
-        "child.profiles": "Child Profiles",
-        "child.add": "Add Child",
-        "child.edit": "Edit Child",
-        "child.name": "Name",
-        "child.name.placeholder": "e.g., Baby John",
-        "child.dob": "Date of Birth",
-        "child.gender": "Gender",
-        "child.gender.male": "Male",
-        "child.gender.female": "Female",
-        "child.gender.other": "Other",
-        "child.blood_type": "Blood Type",
-        "child.blood_type.unknown": "Unknown",
-        "child.notes": "Notes",
-        "child.notes.placeholder": "Allergies, medical conditions...",
-        "child.all": "All Children",
-        "child.select": "Select Child",
-        "child.empty": "No child profiles yet. Add one in Settings.",
-        "child.delete.title": "Delete Child Profile",
-        "child.delete.message": "Are you sure you want to delete this child profile? All associated visits will remain but unlinked.",
-        "child.age": "Age",
-        "child.visits": "visits",
+        // Family Members
+        "member.profiles": "Family Members",
+        "member.add": "Add Member",
+        "member.edit": "Edit Member",
+        "member.name": "Name",
+        "member.name.placeholder": "e.g., John Doe",
+        "member.dob": "Date of Birth",
+        "member.gender": "Gender",
+        "member.gender.male": "Male",
+        "member.gender.female": "Female",
+        "member.gender.other": "Other",
+        "member.blood_type": "Blood Type",
+        "member.blood_type.unknown": "Unknown",
+        "member.notes": "Notes",
+        "member.notes.placeholder": "Allergies, medical conditions...",
+        "member.all": "All Members",
+        "member.select": "Select Member",
+        "member.empty": "No family members yet. Add one to get started.",
+        "member.delete.title": "Delete Member",
+        "member.delete.message": "Are you sure you want to delete this member?",
+        "member.delete.has_visits": "This member has {count} medical visit(s). What would you like to do?",
+        "member.delete.keep_visits": "Delete member only (keep visits)",
+        "member.delete.with_visits": "Delete member and all visits",
+        "member.age": "Age",
+        "member.visits": "visits",
+
+        // Member Types
+        "member.type": "Member Type",
+        "member.type.child": "Child",
+        "member.type.adult": "Adult",
+        "member.type.senior": "Senior",
+
+        // Relationships
+        "member.relationship": "Relationship",
+        "relation.father": "Father",
+        "relation.mother": "Mother",
+        "relation.child": "Child",
+        "relation.grandfather": "Grandfather",
+        "relation.grandmother": "Grandmother",
+        "relation.spouse": "Spouse",
+        "relation.sibling": "Sibling",
+        "relation.other": "Other",
+
+        // Adult/Senior Fields
+        "member.height": "Height (cm)",
+        "member.weight": "Weight (kg)",
+        "member.bmi": "BMI",
+        "member.chronic": "Chronic Conditions",
+        "member.chronic.placeholder": "e.g., Diabetes, Hypertension",
+        "member.medications": "Current Medications",
+        "member.medications.placeholder": "e.g., Aspirin 100mg",
+        "member.insurance": "Insurance ID",
+        "member.insurance.placeholder": "e.g., BHYT123456",
+
+        // Empty State
+        "member.empty.title": "Your Family Awaits",
+        "member.empty.subtitle": "Add family members to start tracking their medical visits and health records",
+        "member.add.first": "Add First Member",
+        "member.tip.1": "Track health records for everyone",
+        "member.tip.2": "Store prescriptions & documents",
+        "member.tip.3": "Never miss important checkups",
+
+        // Add Member UI
+        "member.photo.tap": "Tap to add",
+        "member.info.basic": "Basic Information",
+        "member.info.health": "Health Information",
+        "bmi.underweight": "Underweight",
+        "bmi.normal": "Normal",
+        "bmi.overweight": "Overweight",
+        "bmi.obese": "Obese",
+
+        // Photo Source
+        "photo.source.title": "Add Photo",
+        "photo.source.camera": "Take Photo",
+        "photo.source.camera.desc": "Use camera to capture",
+        "photo.source.library": "Photo Library",
+        "photo.source.library.desc": "Choose from gallery",
     ]
     
     // MARK: - Vietnamese Strings
@@ -247,6 +304,8 @@ struct LocalizedStrings {
         "visit.saving": "Đang lưu ảnh...",
         "visit.tags": "Nhãn",
         "visit.condition.required": "Tình Trạng *",
+        "edit.new.photos": "ảnh mới",
+        "button.clear": "Xóa",
 
         // Tags
         "tag.checkup": "Khám Định Kỳ",
@@ -262,28 +321,83 @@ struct LocalizedStrings {
         "error.save_visit": "Không thể lưu lần khám",
         "error.ok": "OK",
 
-        // Child Profiles
-        "child.profiles": "Hồ Sơ Các Con",
-        "child.add": "Thêm Bé",
-        "child.edit": "Sửa Hồ Sơ",
-        "child.name": "Tên",
-        "child.name.placeholder": "VD: Bé Bống",
-        "child.dob": "Ngày Sinh",
-        "child.gender": "Giới Tính",
-        "child.gender.male": "Nam",
-        "child.gender.female": "Nữ",
-        "child.gender.other": "Khác",
-        "child.blood_type": "Nhóm Máu",
-        "child.blood_type.unknown": "Không rõ",
-        "child.notes": "Ghi Chú",
-        "child.notes.placeholder": "Dị ứng, bệnh mãn tính...",
-        "child.all": "Tất Cả",
-        "child.select": "Chọn Bé",
-        "child.empty": "Chưa có hồ sơ bé. Thêm trong Cài đặt.",
-        "child.delete.title": "Xóa Hồ Sơ",
-        "child.delete.message": "Bạn có chắc muốn xóa hồ sơ này? Các lần khám liên quan vẫn được giữ lại.",
-        "child.age": "Tuổi",
-        "child.visits": "lần khám",
+        // Family Members
+        "member.profiles": "Thành Viên Gia Đình",
+        "member.add": "Thêm Thành Viên",
+        "member.edit": "Sửa Hồ Sơ",
+        "member.name": "Tên",
+        "member.name.placeholder": "VD: Nguyễn Văn A",
+        "member.dob": "Ngày Sinh",
+        "member.gender": "Giới Tính",
+        "member.gender.male": "Nam",
+        "member.gender.female": "Nữ",
+        "member.gender.other": "Khác",
+        "member.blood_type": "Nhóm Máu",
+        "member.blood_type.unknown": "Không rõ",
+        "member.notes": "Ghi Chú",
+        "member.notes.placeholder": "Dị ứng, bệnh mãn tính...",
+        "member.all": "Tất Cả",
+        "member.select": "Chọn Thành Viên",
+        "member.empty": "Chưa có thành viên. Thêm mới để bắt đầu.",
+        "member.delete.title": "Xóa Thành Viên",
+        "member.delete.message": "Bạn có chắc muốn xóa thành viên này?",
+        "member.delete.has_visits": "Thành viên này có {count} lần khám. Bạn muốn làm gì?",
+        "member.delete.keep_visits": "Chỉ xóa thành viên (giữ hồ sơ khám)",
+        "member.delete.with_visits": "Xóa thành viên và tất cả hồ sơ khám",
+        "member.age": "Tuổi",
+        "member.visits": "lần khám",
+
+        // Member Types
+        "member.type": "Loại Thành Viên",
+        "member.type.child": "Trẻ Em",
+        "member.type.adult": "Người Lớn",
+        "member.type.senior": "Người Cao Tuổi",
+
+        // Relationships
+        "member.relationship": "Quan Hệ",
+        "relation.father": "Bố",
+        "relation.mother": "Mẹ",
+        "relation.child": "Con",
+        "relation.grandfather": "Ông",
+        "relation.grandmother": "Bà",
+        "relation.spouse": "Vợ/Chồng",
+        "relation.sibling": "Anh/Chị/Em",
+        "relation.other": "Khác",
+
+        // Adult/Senior Fields
+        "member.height": "Chiều Cao (cm)",
+        "member.weight": "Cân Nặng (kg)",
+        "member.bmi": "BMI",
+        "member.chronic": "Bệnh Mãn Tính",
+        "member.chronic.placeholder": "VD: Tiểu đường, Cao huyết áp",
+        "member.medications": "Thuốc Đang Dùng",
+        "member.medications.placeholder": "VD: Aspirin 100mg",
+        "member.insurance": "Số BHYT",
+        "member.insurance.placeholder": "VD: DN1234567890",
+
+        // Empty State
+        "member.empty.title": "Gia Đình Của Bạn",
+        "member.empty.subtitle": "Thêm thành viên để bắt đầu theo dõi lịch khám và hồ sơ sức khỏe",
+        "member.add.first": "Thêm Thành Viên Đầu Tiên",
+        "member.tip.1": "Theo dõi sức khỏe cho cả nhà",
+        "member.tip.2": "Lưu trữ đơn thuốc & tài liệu",
+        "member.tip.3": "Không bỏ lỡ lịch khám quan trọng",
+
+        // Add Member UI
+        "member.photo.tap": "Nhấn để thêm",
+        "member.info.basic": "Thông Tin Cơ Bản",
+        "member.info.health": "Thông Tin Sức Khỏe",
+        "bmi.underweight": "Thiếu cân",
+        "bmi.normal": "Bình thường",
+        "bmi.overweight": "Thừa cân",
+        "bmi.obese": "Béo phì",
+
+        // Photo Source
+        "photo.source.title": "Thêm Ảnh",
+        "photo.source.camera": "Chụp Ảnh",
+        "photo.source.camera.desc": "Dùng camera để chụp",
+        "photo.source.library": "Thư Viện Ảnh",
+        "photo.source.library.desc": "Chọn từ bộ sưu tập",
     ]
 }
 

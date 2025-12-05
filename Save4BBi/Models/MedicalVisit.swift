@@ -1,6 +1,6 @@
 //
 //  MedicalVisit.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -18,16 +18,16 @@ final class MedicalVisit: Identifiable {
     var visitDate: Date
     var createdAt: Date
     var updatedAt: Date
-    
+
     // Photo file paths (stored in app's document directory)
     var photoFilePaths: [String]
-    
+
     // Tags/Categories
     var tags: [String]
-    
-    // Child profile (for future multi-child support)
-    var childProfileId: UUID?
-    
+
+    // Family member ID (supports all family members)
+    var memberId: UUID?
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -37,7 +37,7 @@ final class MedicalVisit: Identifiable {
         visitDate: Date = Date(),
         photoFilePaths: [String] = [],
         tags: [String] = [],
-        childProfileId: UUID? = nil
+        memberId: UUID? = nil
     ) {
         self.id = id
         self.title = title
@@ -49,7 +49,7 @@ final class MedicalVisit: Identifiable {
         self.updatedAt = Date()
         self.photoFilePaths = photoFilePaths
         self.tags = tags
-        self.childProfileId = childProfileId
+        self.memberId = memberId
     }
 }
 

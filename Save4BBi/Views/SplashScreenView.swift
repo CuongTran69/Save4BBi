@@ -1,6 +1,6 @@
 //
 //  SplashScreenView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 28/11/25.
 //
@@ -9,19 +9,19 @@ import SwiftUI
 
 struct SplashScreenView: View {
     @Binding var showHome: Bool
-    
+
     @State private var scale: CGFloat = 0.7
     @State private var opacity: Double = 0
     @State private var rotationAngle: Double = 0
-    
+
     var body: some View {
         ZStack {
             // Animated gradient background
             LinearGradient(
                 colors: [
-                    Color(red: 1.0, green: 0.5, blue: 0.6),
-                    Color(red: 1.0, green: 0.6, blue: 0.5),
-                    Color(red: 1.0, green: 0.7, blue: 0.6)
+                    Color(red: 0.2, green: 0.5, blue: 0.8),
+                    Color(red: 0.3, green: 0.6, blue: 0.9),
+                    Color(red: 0.4, green: 0.7, blue: 0.95)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -64,13 +64,13 @@ struct SplashScreenView: View {
                         .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
                     
                     // Icon
-                    Image(systemName: "heart.text.square.fill")
+                    Image(systemName: "cross.case.fill")
                         .font(.system(size: 60, weight: .medium))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 1.0, green: 0.4, blue: 0.6),
-                                    Color(red: 1.0, green: 0.6, blue: 0.4)
+                                    Color(red: 0.2, green: 0.5, blue: 0.8),
+                                    Color(red: 0.3, green: 0.7, blue: 0.9)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -79,15 +79,15 @@ struct SplashScreenView: View {
                 }
                 .scaleEffect(scale)
                 .opacity(opacity)
-                
+
                 // App name
                 VStack(spacing: 8) {
-                    Text("Save4BBi")
+                    Text("MediFamily")
                         .font(.system(size: 44, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                    
-                    Text("Your Baby's Health Journey")
+
+                    Text("Family Health Records")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white.opacity(0.95))
                         .tracking(0.5)

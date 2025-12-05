@@ -1,6 +1,6 @@
 //
 //  VisitDetailView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -21,6 +21,7 @@ struct VisitDetailView: View {
     @State private var showingFullScreenPhoto = false
     @State private var selectedPhotoIndex = 0
 
+    @ObservedObject private var lang = LanguageManager.shared
     private let photoService = PhotoService.shared
     
     var body: some View {
@@ -72,13 +73,13 @@ struct VisitDetailView: View {
                 }
             }
         }
-        .alert("Delete Visit", isPresented: $showingDeleteAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert(lang.localized("delete.title"), isPresented: $showingDeleteAlert) {
+            Button(lang.localized("button.cancel"), role: .cancel) { }
+            Button(lang.localized("button.delete"), role: .destructive) {
                 deleteVisit()
             }
         } message: {
-            Text("Are you sure you want to delete this visit? This action cannot be undone.")
+            Text(lang.localized("delete.message"))
         }
         .sheet(isPresented: $showingEditView) {
             EditVisitView(visit: visit)

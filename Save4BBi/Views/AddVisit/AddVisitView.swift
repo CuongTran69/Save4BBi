@@ -1,6 +1,6 @@
 //
 //  AddVisitView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -13,9 +13,9 @@ import RxSwift
 struct AddVisitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Child.createdAt) private var children: [Child]
+    @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
     @ObservedObject private var lang = LanguageManager.shared
-    @ObservedObject private var childManager = ChildManager.shared
+    @ObservedObject private var memberManager = MemberManager.shared
 
     @State private var title = ""
     @State private var condition = ""
@@ -28,7 +28,12 @@ struct AddVisitView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showError = false
-    @State private var selectedChildId: UUID?
+    @State private var selectedMemberId: UUID?
+
+    // Photo source
+    @State private var showPhotoSourceSheet = false
+    @State private var showCamera = false
+    @State private var showLibrary = false
 
     private let photoService = PhotoService.shared
     private let disposeBag = DisposeBag()
@@ -40,8 +45,8 @@ struct AddVisitView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
-                    // Child Selector Section
-                    childSelectorSection
+                    // Member Selector Section
+                    memberSelectorSection
 
                     // Photo Picker Section
                     photoPickerSection
@@ -62,8 +67,8 @@ struct AddVisitView: View {
             .navigationTitle(lang.localized("visit.add.title"))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                // Default to currently selected child
-                selectedChildId = childManager.selectedChildId
+                // Default to currently selected member
+                selectedMemberId = memberManager.selectedMemberId
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -109,48 +114,48 @@ struct AddVisitView: View {
         }
     }
     
-    // MARK: - Child Selector Section
-    private var childSelectorSection: some View {
+    // MARK: - Member Selector Section
+    private var memberSelectorSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text(lang.localized("child.select"))
+            Text(lang.localized("member.select"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Theme.Spacing.sm) {
-                    ForEach(children) { child in
+                    ForEach(members) { member in
                         Button {
-                            selectedChildId = child.id
+                            selectedMemberId = member.id
                         } label: {
                             HStack(spacing: 8) {
                                 // Avatar
-                                childAvatarView(child)
+                                memberAvatarView(member)
 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(child.name)
+                                    Text(member.name)
                                         .font(Theme.Typography.bodyBold)
                                         .lineLimit(1)
-                                    Text(child.age)
+                                    Text(member.age)
                                         .font(Theme.Typography.caption)
                                         .opacity(0.7)
                                 }
                             }
                             .padding(.horizontal, Theme.Spacing.md)
                             .padding(.vertical, Theme.Spacing.sm)
-                            .background(selectedChildId == child.id ? Theme.Colors.primary : Theme.Colors.cardBackground)
-                            .foregroundColor(selectedChildId == child.id ? .white : Theme.Colors.text)
+                            .background(selectedMemberId == member.id ? Theme.Colors.primary : Theme.Colors.cardBackground)
+                            .foregroundColor(selectedMemberId == member.id ? .white : Theme.Colors.text)
                             .cornerRadius(Theme.CornerRadius.medium)
                             .overlay(
                                 RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
-                                    .stroke(selectedChildId == child.id ? Theme.Colors.primary : Theme.Colors.divider, lineWidth: 1)
+                                    .stroke(selectedMemberId == member.id ? Theme.Colors.primary : Theme.Colors.divider, lineWidth: 1)
                             )
                         }
                     }
                 }
             }
 
-            if children.isEmpty {
-                Text(lang.localized("child.empty"))
+            if members.isEmpty {
+                Text(lang.localized("member.empty"))
                     .font(Theme.Typography.caption)
                     .foregroundColor(Theme.Colors.text.opacity(0.6))
                     .padding(.top, Theme.Spacing.xs)
@@ -158,14 +163,14 @@ struct AddVisitView: View {
         }
     }
 
-    private func childAvatarView(_ child: Child) -> some View {
+    private func memberAvatarView(_ member: FamilyMember) -> some View {
         Group {
-            if let avatarData = child.avatarData, let uiImage = UIImage(data: avatarData) {
+            if let avatarData = member.avatarData, let uiImage = UIImage(data: avatarData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
             } else {
-                Text(child.avatarIcon)
+                Text(member.avatarIcon)
                     .font(.title3)
             }
         }
@@ -181,46 +186,80 @@ struct AddVisitView: View {
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
-            PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 10, matching: .images) {
-                HStack {
-                    Image(systemName: "photo.on.rectangle.angled")
-                        .font(.title2)
-                        .foregroundColor(Theme.Colors.primary)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(lang.localized("visit.photos.add"))
-                            .font(Theme.Typography.bodyBold)
-                            .foregroundColor(Theme.Colors.text)
-
-                        Text(lang.localized("visit.photos.select"))
-                            .font(Theme.Typography.caption)
-                            .foregroundColor(Theme.Colors.text.opacity(0.6))
-                    }
-
-                    Spacer()
-
-                    if !selectedPhotos.isEmpty {
-                        Text("\(selectedPhotos.count)")
-                            .font(Theme.Typography.bodyBold)
-                            .foregroundColor(.white)
-                            .frame(width: 28, height: 28)
-                            .background(Theme.Colors.accent)
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(Theme.Spacing.md)
-                .cardStyle()
-            }
-            .onChange(of: selectedPhotos) { _, newItems in
-                Task {
-                    photoImages = []
-                    for item in newItems {
-                        if let data = try? await item.loadTransferable(type: Data.self),
-                           let image = UIImage(data: data) {
-                            photoImages.append(image)
+            // Photo options - Camera & Library
+            HStack(spacing: Theme.Spacing.md) {
+                // Camera button
+                Button {
+                    showCamera = true
+                } label: {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(Theme.Colors.primary.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(Theme.Colors.primary)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(lang.localized("photo.source.camera"))
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Theme.Colors.text)
                         }
                     }
+                    .padding(Theme.Spacing.sm)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.medium)
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
                 }
+                .buttonStyle(ScaleButtonStyle())
+
+                // Library button
+                Button {
+                    showLibrary = true
+                } label: {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(Theme.Colors.accent.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 18))
+                                .foregroundColor(Theme.Colors.accent)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(lang.localized("photo.source.library"))
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Theme.Colors.text)
+                        }
+                    }
+                    .padding(Theme.Spacing.sm)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.medium)
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
+
+            // Photo count indicator
+            if !photoImages.isEmpty {
+                HStack {
+                    Text("\(photoImages.count) \(lang.localized("visit.photos"))")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.Colors.primary)
+                    Spacer()
+                    Button {
+                        photoImages.removeAll()
+                        selectedPhotos.removeAll()
+                    } label: {
+                        Text(lang.localized("button.clear"))
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.Colors.error)
+                    }
+                }
+                .padding(.top, 4)
             }
 
             // Photo preview grid
@@ -228,15 +267,38 @@ struct AddVisitView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: Theme.Spacing.sm) {
                         ForEach(Array(photoImages.enumerated()), id: \.offset) { index, image in
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 80, height: 80)
-                                .clipShape(RoundedRectangle(cornerRadius: Theme.CornerRadius.small))
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(RoundedRectangle(cornerRadius: Theme.CornerRadius.small))
+
+                                // Remove button
+                                Button {
+                                    photoImages.remove(at: index)
+                                    if index < selectedPhotos.count {
+                                        selectedPhotos.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white)
+                                        .shadow(radius: 2)
+                                }
+                                .offset(x: 6, y: -6)
+                            }
                         }
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showLibrary) {
+            MultiPhotosPickerSheet(selectedImages: $photoImages)
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            MultiCameraImagePicker(images: $photoImages)
+                .ignoresSafeArea()
         }
     }
     
@@ -362,7 +424,7 @@ struct AddVisitView: View {
     }
     
     private func saveVisitToDatabase(savedPhotoFilenames: [String]) {
-        // Create new visit with selected child profile
+        // Create new visit with selected member
         let visit = MedicalVisit(
             title: title,
             condition: condition,
@@ -371,7 +433,7 @@ struct AddVisitView: View {
             visitDate: visitDate,
             photoFilePaths: savedPhotoFilenames,
             tags: Array(selectedTags),
-            childProfileId: selectedChildId
+            memberId: selectedMemberId
         )
 
         modelContext.insert(visit)

@@ -1,6 +1,6 @@
 //
 //  VisitCard.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 20/11/25.
 //
@@ -18,6 +18,7 @@ struct VisitCard: View {
     @State private var showingDeleteDialog = false
     @State private var allImages: [UIImage] = []
 
+    @ObservedObject private var lang = LanguageManager.shared
     private let photoService = PhotoService.shared
 
     // Fixed heights for consistent grid layout
@@ -119,12 +120,12 @@ struct VisitCard: View {
         }
         .customDialog(
             isPresented: $showingDeleteDialog,
-            title: "Delete Visit?",
-            message: "This action cannot be undone. All photos and information will be permanently deleted.",
-            primaryButton: DialogButton(title: "Delete", isDestructive: true) {
+            title: lang.localized("delete.title"),
+            message: lang.localized("delete.message"),
+            primaryButton: DialogButton(title: lang.localized("button.delete"), isDestructive: true) {
                 onDelete?()
             },
-            secondaryButton: DialogButton(title: "Cancel") {}
+            secondaryButton: DialogButton(title: lang.localized("button.cancel")) {}
         )
     }
 

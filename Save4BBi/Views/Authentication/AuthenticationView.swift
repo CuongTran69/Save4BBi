@@ -1,6 +1,6 @@
 //
 //  AuthenticationView.swift
-//  Save4BBi
+//  MediFamily
 //
 //  Created by Cường Trần on 27/11/25.
 //
@@ -74,7 +74,7 @@ struct AuthenticationView: View {
                     
                     // App name and tagline
                     VStack(spacing: 8) {
-                        Text("Save4BBi")
+                        Text("MediFamily")
                             .font(.system(size: 42, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
@@ -196,7 +196,7 @@ struct AuthenticationView: View {
             errorMessage = nil
         }
         
-        biometricService.authenticateWithPasscode(reason: "Unlock Save4BBi to access your baby's medical records")
+        biometricService.authenticateWithPasscode(reason: "Unlock MediFamily to access your baby's medical records")
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { success in

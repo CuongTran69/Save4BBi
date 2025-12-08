@@ -216,6 +216,7 @@ struct LocalizedStrings {
         "member.tip.1": "Track health records for everyone",
         "member.tip.2": "Store prescriptions & documents",
         "member.tip.3": "Never miss important checkups",
+        "member.default_name": "Me",
 
         // Add Member UI
         "member.photo.tap": "Tap to add",
@@ -278,6 +279,10 @@ struct LocalizedStrings {
         "reminder.upcoming": "Upcoming Reminders",
         "reminder.delete": "Delete Reminder",
         "reminder.delete_confirm": "Are you sure you want to delete this reminder?",
+        "reminder.tip": "Tap the bell icon on a visit to set a follow-up reminder",
+        "reminder.past": "Missed Reminders",
+        "reminder.completed": "Completed",
+        "reminder.mark_done": "Mark Done",
     ]
     
     // MARK: - Vietnamese Strings
@@ -428,6 +433,7 @@ struct LocalizedStrings {
         "member.tip.1": "Theo dõi sức khỏe cho cả nhà",
         "member.tip.2": "Lưu trữ đơn thuốc & tài liệu",
         "member.tip.3": "Không bỏ lỡ lịch khám quan trọng",
+        "member.default_name": "Tôi",
 
         // Add Member UI
         "member.photo.tap": "Nhấn để thêm",
@@ -490,6 +496,10 @@ struct LocalizedStrings {
         "reminder.upcoming": "Nhắc Nhở Sắp Tới",
         "reminder.delete": "Xóa Nhắc Nhở",
         "reminder.delete_confirm": "Bạn có chắc muốn xóa nhắc nhở này?",
+        "reminder.tip": "Nhấn vào biểu tượng chuông trên lần khám để đặt nhắc tái khám",
+        "reminder.past": "Nhắc Nhở Đã Qua",
+        "reminder.completed": "Đã Hoàn Thành",
+        "reminder.mark_done": "Đánh Dấu Xong",
     ]
 }
 

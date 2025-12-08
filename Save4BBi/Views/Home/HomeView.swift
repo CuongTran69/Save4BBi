@@ -17,17 +17,24 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MedicalVisit.visitDate, order: .reverse) private var visits: [MedicalVisit]
     @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
+    @Query(sort: \Reminder.scheduledDate) private var reminders: [Reminder]
     @ObservedObject private var languageManager = LanguageManager.shared
     @ObservedObject private var memberManager = MemberManager.shared
 
     @State private var searchText = ""
     @State private var viewMode: ViewMode = .grid
     @State private var showingAddVisit = false
-    @State private var showingFilterSheet = false
     @State private var showingSettings = false
     @State private var showingFamilyMembers = false
     @State private var showingStatistics = false
-    @State private var filterOptions = FilterOptions()
+    @State private var showingReminders = false
+    @State private var isSearchExpanded = false
+    @FocusState private var isSearchFocused: Bool
+
+    // Count of upcoming reminders (not completed, not past)
+    private var upcomingReminderCount: Int {
+        reminders.filter { !$0.isCompleted && !$0.isPast }.count
+    }
 
     // Get selected member
     private var selectedMember: FamilyMember? {
@@ -49,36 +56,13 @@ struct HomeView: View {
                 visit.title.localizedCaseInsensitiveContains(searchText) ||
                 visit.condition.localizedCaseInsensitiveContains(searchText) ||
                 visit.doctorName.localizedCaseInsensitiveContains(searchText) ||
-                visit.notes.localizedCaseInsensitiveContains(searchText)
+                visit.notes.localizedCaseInsensitiveContains(searchText) ||
+                visit.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
             }
         }
 
-        // Apply date range filter
-        if let startDate = filterOptions.startDate {
-            result = result.filter { $0.visitDate >= startDate }
-        }
-        if let endDate = filterOptions.endDate {
-            result = result.filter { $0.visitDate <= endDate }
-        }
-
-        // Apply tag filter
-        if !filterOptions.selectedTags.isEmpty {
-            result = result.filter { visit in
-                !Set(visit.tags).isDisjoint(with: filterOptions.selectedTags)
-            }
-        }
-
-        // Apply sort
-        switch filterOptions.sortOption {
-        case .dateNewest:
-            result.sort { $0.visitDate > $1.visitDate }
-        case .dateOldest:
-            result.sort { $0.visitDate < $1.visitDate }
-        case .conditionAZ:
-            result.sort { $0.condition < $1.condition }
-        case .conditionZA:
-            result.sort { $0.condition > $1.condition }
-        }
+        // Sort by newest first
+        result.sort { $0.visitDate > $1.visitDate }
 
         return result
     }
@@ -108,7 +92,7 @@ struct HomeView: View {
 
                 // Floating Add Button
                 Button {
-                    showingAddVisit = true
+                    handleAddVisitTap()
                 } label: {
                     Image(systemName: "plus")
                         .font(.title2)
@@ -128,12 +112,18 @@ struct HomeView: View {
                 .padding(Theme.Spacing.lg)
             }
             .navigationBarHidden(true)
+            .onTapGesture {
+                // Collapse search when tapping outside
+                if isSearchExpanded && searchText.isEmpty {
+                    withAnimation(Theme.Animation.quick) {
+                        isSearchExpanded = false
+                        isSearchFocused = false
+                    }
+                }
+            }
         }
         .sheet(isPresented: $showingAddVisit) {
             AddVisitView()
-        }
-        .sheet(isPresented: $showingFilterSheet) {
-            FilterSheet(filterOptions: $filterOptions)
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -144,148 +134,173 @@ struct HomeView: View {
         .sheet(isPresented: $showingStatistics) {
             StatisticsView()
         }
+        .sheet(isPresented: $showingReminders) {
+            RemindersListView()
+        }
     }
 
     // MARK: - Header View
     private var headerView: some View {
         VStack(spacing: 12) {
-            // Title row with settings button
-            HStack {
-                Text(languageManager.localized("home.title"))
-                    .font(.system(size: 34, weight: .bold))
-                    .foregroundColor(Theme.Colors.text)
+            // Title row with action buttons
+            HStack(spacing: 16) {
+                if isSearchExpanded {
+                    // Expanded search field
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.subheadline)
+                            .foregroundColor(Theme.Colors.text.opacity(0.4))
 
-                Spacer()
+                        TextField(languageManager.localized("home.search"), text: $searchText)
+                            .font(Theme.Typography.body)
+                            .focused($isSearchFocused)
 
-                // Statistics button
-                Button {
-                    showingStatistics = true
-                } label: {
-                    Image(systemName: "chart.bar.fill")
-                        .font(.title2)
-                        .foregroundColor(Theme.Colors.accent)
-                }
+                        if !searchText.isEmpty {
+                            Button {
+                                searchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(Theme.Colors.text.opacity(0.4))
+                            }
+                        }
 
-                // Settings button
-                Button {
-                    showingSettings = true
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title2)
-                        .foregroundColor(Theme.Colors.primary)
+                        Button {
+                            withAnimation(Theme.Animation.quick) {
+                                searchText = ""
+                                isSearchExpanded = false
+                                isSearchFocused = false
+                            }
+                        } label: {
+                            Text(languageManager.localized("button.cancel"))
+                                .font(Theme.Typography.subheadline)
+                                .foregroundColor(Theme.Colors.primary)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.medium)
+                } else {
+                    // Title
+                    Text(languageManager.localized("home.title"))
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Theme.Colors.text)
+
+                    Spacer()
+
+                    // Action buttons - all same color for consistency
+                    HStack(spacing: 20) {
+                        // Search
+                        Button {
+                            withAnimation(Theme.Animation.quick) {
+                                isSearchExpanded = true
+                                isSearchFocused = true
+                            }
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Theme.Colors.text.opacity(0.6))
+                        }
+
+                        // Reminders with badge
+                        Button {
+                            showingReminders = true
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "bell")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(Theme.Colors.text.opacity(0.6))
+
+                                if upcomingReminderCount > 0 {
+                                    Circle()
+                                        .fill(Theme.Colors.error)
+                                        .frame(width: 8, height: 8)
+                                        .offset(x: 2, y: -2)
+                                }
+                            }
+                        }
+
+                        // Statistics
+                        Button {
+                            showingStatistics = true
+                        } label: {
+                            Image(systemName: "chart.bar")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Theme.Colors.text.opacity(0.6))
+                        }
+
+                        // Settings
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Theme.Colors.text.opacity(0.6))
+                        }
+                    }
                 }
             }
             .padding(.horizontal, Theme.Spacing.md)
 
-            // Member Selector
-            memberSelectorView
-                .padding(.horizontal, Theme.Spacing.md)
-
-            // Search bar
-            SearchBar(text: $searchText, placeholder: languageManager.localized("home.search"))
-                .padding(.horizontal, Theme.Spacing.md)
-
-            // View mode toggle and filter
+            // Member Selector + View Mode Toggle
             HStack {
-                // View mode toggle
-                HStack(spacing: 0) {
+                // Member chips
+                memberSelectorView
+
+                Spacer()
+
+                // View mode toggle - compact
+                HStack(spacing: 4) {
                     Button {
-                        withAnimation(Theme.Animation.quick) {
-                            viewMode = .grid
-                        }
+                        withAnimation(Theme.Animation.quick) { viewMode = .grid }
                     } label: {
                         Image(systemName: "square.grid.2x2")
-                            .font(.title3)
-                            .foregroundColor(viewMode == .grid ? .white : Theme.Colors.text)
-                            .frame(width: 44, height: 36)
-                            .background(viewMode == .grid ? Theme.Colors.primary : Color.clear)
+                            .font(.system(size: 14))
+                            .foregroundColor(viewMode == .grid ? Theme.Colors.primary : Theme.Colors.text.opacity(0.4))
                     }
 
                     Button {
-                        withAnimation(Theme.Animation.quick) {
-                            viewMode = .list
-                        }
+                        withAnimation(Theme.Animation.quick) { viewMode = .list }
                     } label: {
                         Image(systemName: "list.bullet")
-                            .font(.title3)
-                            .foregroundColor(viewMode == .list ? .white : Theme.Colors.text)
-                            .frame(width: 44, height: 36)
-                            .background(viewMode == .list ? Theme.Colors.primary : Color.clear)
+                            .font(.system(size: 14))
+                            .foregroundColor(viewMode == .list ? Theme.Colors.primary : Theme.Colors.text.opacity(0.4))
                     }
                 }
-                .background(Theme.Colors.primary.opacity(0.1))
-                .cornerRadius(Theme.CornerRadius.small)
-
-                Spacer()
-
-                // Filter button
-                Button {
-                    showingFilterSheet = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: filterOptions.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                        Text(languageManager.localized("home.filter"))
-                    }
-                    .font(Theme.Typography.subheadline)
-                    .foregroundColor(filterOptions.isActive ? .white : Theme.Colors.primary)
-                    .padding(.horizontal, Theme.Spacing.md)
-                    .padding(.vertical, Theme.Spacing.sm)
-                    .background(filterOptions.isActive ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.1))
-                    .cornerRadius(Theme.CornerRadius.small)
-                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Theme.Colors.text.opacity(0.05))
+                .cornerRadius(6)
             }
             .padding(.horizontal, Theme.Spacing.md)
-            .padding(.bottom, Theme.Spacing.sm)
         }
         .padding(.top, Theme.Spacing.sm)
+        .padding(.bottom, Theme.Spacing.sm)
         .background(Theme.Colors.background)
     }
 
     // MARK: - Member Selector View
     private var memberSelectorView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Theme.Spacing.sm) {
+            HStack(spacing: 8) {
                 // "All" button
-                Button {
-                    withAnimation { memberManager.clearSelection() }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "person.3.fill")
-                            .font(.caption)
-                        Text(languageManager.localized("member.all"))
-                            .font(Theme.Typography.caption)
-                    }
-                    .padding(.horizontal, Theme.Spacing.md)
-                    .padding(.vertical, Theme.Spacing.sm)
-                    .background(memberManager.selectedMemberId == nil ? Theme.Colors.primary : Theme.Colors.cardBackground)
-                    .foregroundColor(memberManager.selectedMemberId == nil ? .white : Theme.Colors.text)
-                    .cornerRadius(Theme.CornerRadius.round)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
-                            .stroke(Theme.Colors.primary.opacity(0.3), lineWidth: 1)
-                    )
+                memberChip(
+                    label: languageManager.localized("member.all"),
+                    isSelected: memberManager.selectedMemberId == nil,
+                    icon: nil
+                ) {
+                    withAnimation(.easeInOut(duration: 0.2)) { memberManager.clearSelection() }
                 }
 
                 // Member buttons
                 ForEach(members) { member in
-                    Button {
-                        withAnimation { memberManager.selectMember(member) }
-                    } label: {
-                        HStack(spacing: 6) {
-                            memberAvatarView(member)
-                            Text(member.name)
-                                .font(Theme.Typography.caption)
-                                .lineLimit(1)
-                        }
-                        .padding(.horizontal, Theme.Spacing.md)
-                        .padding(.vertical, Theme.Spacing.sm)
-                        .background(memberManager.isSelected(member) ? Theme.Colors.primary : Theme.Colors.cardBackground)
-                        .foregroundColor(memberManager.isSelected(member) ? .white : Theme.Colors.text)
-                        .cornerRadius(Theme.CornerRadius.round)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.CornerRadius.round)
-                                .stroke(Theme.Colors.primary.opacity(0.3), lineWidth: 1)
-                        )
+                    memberChip(
+                        label: member.name,
+                        isSelected: memberManager.isSelected(member),
+                        icon: member.avatarIcon
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.2)) { memberManager.selectMember(member) }
                     }
                 }
 
@@ -294,29 +309,58 @@ struct HomeView: View {
                     showingFamilyMembers = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.caption)
-                        .foregroundColor(Theme.Colors.primary)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Theme.Colors.text.opacity(0.5))
                         .frame(width: 28, height: 28)
-                        .background(Theme.Colors.primary.opacity(0.1))
+                        .background(Theme.Colors.text.opacity(0.08))
                         .clipShape(Circle())
                 }
             }
         }
     }
 
-    private func memberAvatarView(_ member: FamilyMember) -> some View {
-        Group {
-            if let avatarData = member.avatarData, let uiImage = UIImage(data: avatarData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Text(member.avatarIcon)
-                    .font(.caption2)
+    private func memberChip(label: String, isSelected: Bool, icon: String?, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon = icon {
+                    Text(icon)
+                        .font(.system(size: 12))
+                }
+                Text(label)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .lineLimit(1)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isSelected ? Theme.Colors.primary : Theme.Colors.text.opacity(0.06))
+            .foregroundColor(isSelected ? .white : Theme.Colors.text.opacity(0.8))
+            .cornerRadius(16)
         }
-        .frame(width: 20, height: 20)
-        .background(Theme.Colors.primary.opacity(0.2))
-        .clipShape(Circle())
+    }
+
+    // MARK: - Actions
+
+    private func handleAddVisitTap() {
+        // If no members exist, create a default member first
+        if members.isEmpty {
+            createDefaultMember()
+        }
+        showingAddVisit = true
+    }
+
+    private func createDefaultMember() {
+        let defaultMember = FamilyMember(
+            name: languageManager.localized("member.default_name"),
+            dateOfBirth: Calendar.current.date(byAdding: .year, value: -30, to: Date()) ?? Date(),
+            memberType: .adult,
+            gender: .other,
+            bloodType: .unknown,
+            relationship: .other
+        )
+        modelContext.insert(defaultMember)
+        try? modelContext.save()
+
+        // Auto-select the new member
+        memberManager.selectMember(defaultMember)
     }
 }

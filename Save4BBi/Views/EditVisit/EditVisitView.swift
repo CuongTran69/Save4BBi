@@ -74,14 +74,26 @@ struct EditVisitView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text(lang.localized("button.cancel"))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Theme.Colors.text.opacity(0.7))
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button {
                         saveChanges()
+                    } label: {
+                        Text(lang.localized("button.save"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(isFormValid && !isSaving ? .white : Theme.Colors.text.opacity(0.3))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.text.opacity(0.1))
+                            .cornerRadius(8)
                     }
                     .disabled(!isFormValid || isSaving)
                 }
@@ -354,17 +366,13 @@ struct EditVisitView: View {
                 
                 // Doctor Name
                 FormField(title: "Doctor Name", placeholder: "e.g., Dr. Nguyễn Văn A", text: $doctorName)
-                
+
                 // Visit Date
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text("Visit Date")
-                        .font(Theme.Typography.subheadline)
-                        .foregroundColor(Theme.Colors.text.opacity(0.7))
-                    
-                    DatePicker("", selection: $visitDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                }
+                CustomDatePicker(
+                    "Visit Date",
+                    selection: $visitDate,
+                    mode: .date
+                )
             }
             .padding(Theme.Spacing.md)
             .cardStyle()

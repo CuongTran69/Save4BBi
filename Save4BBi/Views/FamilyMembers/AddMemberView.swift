@@ -21,7 +21,7 @@ struct AddMemberView: View {
     @State private var name = ""
     @State private var dateOfBirth = Date()
     @State private var memberType: MemberType = .child
-    @State private var gender: Gender = .other
+    @State private var gender: Gender = .male
     @State private var bloodType: BloodType = .unknown
     @State private var relationship: Relationship = .child
     @State private var notes = ""
@@ -78,8 +78,12 @@ struct AddMemberView: View {
                         saveMember()
                     } label: {
                         Text(lang.localized("button.save"))
-                            .fontWeight(.semibold)
-                            .foregroundColor(isFormValid ? Theme.Colors.primary : Theme.Colors.text.opacity(0.3))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(isFormValid ? .white : Theme.Colors.text.opacity(0.3))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(isFormValid ? Theme.Colors.primary : Theme.Colors.text.opacity(0.1))
+                            .cornerRadius(8)
                     }
                     .disabled(!isFormValid)
                 }
@@ -265,24 +269,14 @@ struct AddMemberView: View {
             )
 
             // Date of Birth
-            HStack(spacing: Theme.Spacing.md) {
-                Image(systemName: "calendar")
-                    .foregroundColor(Theme.Colors.primary)
-                    .frame(width: 20)
+            let pastRange = Date(timeIntervalSince1970: 0)...Date() // From 1970 to now
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(lang.localized("member.dob"))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Theme.Colors.text.opacity(0.5))
-                    DatePicker("", selection: $dateOfBirth, in: ...Date(), displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                }
-                Spacer()
-            }
-            .padding(Theme.Spacing.md)
-            .background(Theme.Colors.background)
-            .cornerRadius(Theme.CornerRadius.medium)
+            CustomDatePicker(
+                lang.localized("member.dob"),
+                selection: $dateOfBirth,
+                mode: .date,
+                in: pastRange
+            )
 
             // Gender selection
             VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
@@ -296,7 +290,7 @@ struct AddMemberView: View {
                 }
 
                 HStack(spacing: Theme.Spacing.sm) {
-                    ForEach(Gender.allCases, id: \.self) { g in
+                    ForEach([Gender.male, Gender.female], id: \.self) { g in
                         genderButton(g)
                     }
                 }

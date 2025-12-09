@@ -18,6 +18,9 @@ struct RemindersListView: View {
     
     @State private var showDeleteAlert = false
     @State private var reminderToDelete: Reminder?
+    @State private var showEditSheet = false
+    @State private var reminderToEdit: Reminder?
+    @State private var editedDate: Date = Date()
     
     // Filter to show only upcoming (not completed, not past)
     private var upcomingReminders: [Reminder] {
@@ -46,7 +49,17 @@ struct RemindersListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(lang.localized("button.done")) { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(lang.localized("button.done"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Theme.Colors.primary)
+                            .cornerRadius(8)
+                    }
                 }
             }
             .alert(lang.localized("reminder.delete"), isPresented: $showDeleteAlert) {
@@ -59,7 +72,75 @@ struct RemindersListView: View {
             } message: {
                 Text(lang.localized("reminder.delete_confirm"))
             }
+            .sheet(isPresented: $showEditSheet) {
+                editReminderSheet
+            }
         }
+    }
+
+    // MARK: - Edit Reminder Sheet
+    private var editReminderSheet: some View {
+        NavigationStack {
+            VStack(spacing: Theme.Spacing.lg) {
+                // Reminder info
+                if let reminder = reminderToEdit {
+                    VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                        Text(reminder.visitTitle ?? reminder.title)
+                            .font(Theme.Typography.title3)
+                            .foregroundColor(Theme.Colors.text)
+
+                        if let memberName = reminder.memberName {
+                            Text(memberName)
+                                .font(Theme.Typography.body)
+                                .foregroundColor(Theme.Colors.primary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Theme.Spacing.md)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.medium)
+                }
+
+                // Date picker
+                CustomDatePicker(
+                    lang.localized("reminder.date"),
+                    selection: $editedDate,
+                    mode: .dateAndTime
+                )
+
+                Spacer()
+            }
+            .padding(Theme.Spacing.md)
+            .background(Theme.Colors.background)
+            .navigationTitle(lang.localized("reminder.edit"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        showEditSheet = false
+                    } label: {
+                        Text(lang.localized("button.cancel"))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Theme.Colors.text.opacity(0.7))
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        saveEditedReminder()
+                    } label: {
+                        Text(lang.localized("button.save"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Theme.Colors.primary)
+                            .cornerRadius(8)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
     
     // MARK: - Empty State
@@ -169,13 +250,22 @@ struct RemindersListView: View {
             }
         }
         .padding(.vertical, 4)
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
                 reminderToDelete = reminder
                 showDeleteAlert = true
             } label: {
                 Label(lang.localized("button.delete"), systemImage: "trash")
             }
+
+            Button {
+                reminderToEdit = reminder
+                editedDate = reminder.scheduledDate
+                showEditSheet = true
+            } label: {
+                Label(lang.localized("button.edit"), systemImage: "pencil")
+            }
+            .tint(Theme.Colors.primary)
         }
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button {
@@ -239,6 +329,24 @@ struct RemindersListView: View {
         notificationManager.cancelReminder(reminder)
 
         try? modelContext.save()
+    }
+
+    private func saveEditedReminder() {
+        guard let reminder = reminderToEdit else { return }
+
+        // Cancel old notification
+        notificationManager.cancelReminder(reminder)
+
+        // Update the date
+        reminder.scheduledDate = editedDate
+
+        // Reschedule notification with new date
+        Task {
+            await notificationManager.scheduleReminder(reminder)
+        }
+
+        try? modelContext.save()
+        showEditSheet = false
     }
 }
 

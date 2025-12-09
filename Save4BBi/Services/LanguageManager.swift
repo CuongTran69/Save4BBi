@@ -265,6 +265,7 @@ struct LocalizedStrings {
         "reminder.in_1_month": "In 1 month",
         "reminder.in_3_months": "In 3 months",
         "reminder.custom": "Custom date",
+        "reminder.custom_date": "Select Custom Date & Time",
         "reminder.set": "Set Reminder",
         "reminder.cancel": "Cancel",
         "reminder.success": "Reminder set!",
@@ -283,6 +284,14 @@ struct LocalizedStrings {
         "reminder.past": "Missed Reminders",
         "reminder.completed": "Completed",
         "reminder.mark_done": "Mark Done",
+        "reminder.edit": "Edit Reminder",
+        "reminder.date": "Reminder Date",
+
+        // Menu
+        "menu.family": "Family Members",
+        "menu.statistics": "Statistics",
+        "menu.settings": "Settings",
+        "menu.subtitle": "Family Health Tracker",
     ]
     
     // MARK: - Vietnamese Strings
@@ -482,6 +491,7 @@ struct LocalizedStrings {
         "reminder.in_1_month": "Sau 1 tháng",
         "reminder.in_3_months": "Sau 3 tháng",
         "reminder.custom": "Chọn ngày",
+        "reminder.custom_date": "Chọn Ngày & Giờ Tùy Chỉnh",
         "reminder.set": "Đặt Nhắc Nhở",
         "reminder.cancel": "Hủy",
         "reminder.success": "Đã đặt nhắc nhở!",
@@ -500,6 +510,14 @@ struct LocalizedStrings {
         "reminder.past": "Nhắc Nhở Đã Qua",
         "reminder.completed": "Đã Hoàn Thành",
         "reminder.mark_done": "Đánh Dấu Xong",
+        "reminder.edit": "Sửa Nhắc Nhở",
+        "reminder.date": "Ngày Nhắc",
+
+        // Menu
+        "menu.family": "Thành Viên",
+        "menu.statistics": "Thống Kê",
+        "menu.settings": "Cài Đặt",
+        "menu.subtitle": "Quản Lý Sức Khỏe Gia Đình",
     ]
 }
 

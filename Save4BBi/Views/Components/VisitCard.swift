@@ -9,6 +9,7 @@ import SwiftUI
 
 struct VisitCard: View {
     let visit: MedicalVisit
+    var member: FamilyMember? = nil
     var onDelete: (() -> Void)? = nil
     var isCompact: Bool = true  // For grid view (compact) vs list view (full)
 
@@ -28,13 +29,31 @@ struct VisitCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Thumbnail image at top
-            ZStack(alignment: .topTrailing) {
+            ZStack {
                 thumbnailView
 
-                // Delete button - inside the card
+                // Member badge - top left
+                if let member = member {
+                    VStack {
+                        HStack {
+                            memberBadge(member)
+                                .padding(8)
+                            Spacer()
+                        }
+                        Spacer()
+                    }
+                }
+
+                // Delete button - top right
                 if onDelete != nil {
-                    deleteButton
-                        .padding(8)
+                    VStack {
+                        HStack {
+                            Spacer()
+                            deleteButton
+                                .padding(8)
+                        }
+                        Spacer()
+                    }
                 }
             }
             .frame(height: thumbnailHeight)
@@ -176,6 +195,25 @@ struct VisitCard: View {
                     .foregroundColor(Theme.Colors.primary.opacity(0.3))
             )
         }
+    }
+
+    // MARK: - Member Badge
+    private func memberBadge(_ member: FamilyMember) -> some View {
+        HStack(spacing: 4) {
+            Text(member.avatarIcon)
+                .font(.system(size: 14))
+            Text(member.name)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(Theme.Colors.text)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(Theme.Colors.cardBackground.opacity(0.95))
+                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+        )
     }
 
     // MARK: - Delete Button

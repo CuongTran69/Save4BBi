@@ -29,6 +29,7 @@ struct HomeView: View {
     @State private var showingStatistics = false
     @State private var showingReminders = false
     @State private var isSearchExpanded = false
+    @State private var showingSideMenu = false
     @FocusState private var isSearchFocused: Bool
 
     // Count of upcoming reminders (not completed, not past)
@@ -68,74 +69,84 @@ struct HomeView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                VStack(spacing: 0) {
-                    // Custom Header
-                    headerView
-                    
-                    // Content
-                    if filteredVisits.isEmpty {
-                        EmptyStateView()
-                    } else {
-                        ScrollView {
-                            if viewMode == .grid {
-                                GridLayout(visits: filteredVisits)
-                            } else {
-                                ListLayout(visits: filteredVisits)
+        ZStack {
+            NavigationStack {
+                ZStack(alignment: .bottomTrailing) {
+                    VStack(spacing: 0) {
+                        // Custom Header
+                        headerView
+
+                        // Content
+                        if filteredVisits.isEmpty {
+                            EmptyStateView()
+                        } else {
+                            ScrollView {
+                                if viewMode == .grid {
+                                    GridLayout(visits: filteredVisits)
+                                } else {
+                                    ListLayout(visits: filteredVisits)
+                                }
                             }
                         }
                     }
-                }
-                .dismissKeyboardOnTap()
-                .background(Theme.Colors.background)
+                    .dismissKeyboardOnTap()
+                    .background(Theme.Colors.background)
 
-                // Floating Add Button
-                Button {
-                    handleAddVisitTap()
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(width: 60, height: 60)
-                        .background(
-                            LinearGradient(
-                                colors: [Theme.Colors.primary, Theme.Colors.accent],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    // Floating Add Button
+                    Button {
+                        handleAddVisitTap()
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(
+                                LinearGradient(
+                                    colors: [Theme.Colors.primary, Theme.Colors.accent],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .clipShape(Circle())
-                        .shadow(color: Theme.Colors.shadow, radius: 8, x: 0, y: 4)
+                            .clipShape(Circle())
+                            .shadow(color: Theme.Colors.shadow, radius: 8, x: 0, y: 4)
+                    }
+                    .padding(Theme.Spacing.lg)
                 }
-                .padding(Theme.Spacing.lg)
-            }
-            .navigationBarHidden(true)
-            .onTapGesture {
-                // Collapse search when tapping outside
-                if isSearchExpanded && searchText.isEmpty {
-                    withAnimation(Theme.Animation.quick) {
-                        isSearchExpanded = false
-                        isSearchFocused = false
+                .navigationBarHidden(true)
+                .onTapGesture {
+                    // Collapse search when tapping outside
+                    if isSearchExpanded && searchText.isEmpty {
+                        withAnimation(Theme.Animation.quick) {
+                            isSearchExpanded = false
+                            isSearchFocused = false
+                        }
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingAddVisit) {
-            AddVisitView()
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-        .sheet(isPresented: $showingFamilyMembers) {
-            FamilyMembersView()
-        }
-        .sheet(isPresented: $showingStatistics) {
-            StatisticsView()
-        }
-        .sheet(isPresented: $showingReminders) {
-            RemindersListView()
+            .sheet(isPresented: $showingAddVisit) {
+                AddVisitView()
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
+            .sheet(isPresented: $showingFamilyMembers) {
+                FamilyMembersView()
+            }
+            .sheet(isPresented: $showingStatistics) {
+                StatisticsView()
+            }
+            .sheet(isPresented: $showingReminders) {
+                RemindersListView()
+            }
+
+            // Side Menu overlay
+            SideMenuView(
+                isPresented: $showingSideMenu,
+                onSettingsTap: { showingSettings = true },
+                onStatisticsTap: { showingStatistics = true },
+                onFamilyMembersTap: { showingFamilyMembers = true }
+            )
         }
     }
 
@@ -182,6 +193,17 @@ struct HomeView: View {
                     .background(Theme.Colors.cardBackground)
                     .cornerRadius(Theme.CornerRadius.medium)
                 } else {
+                    // Menu button (hamburger)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showingSideMenu = true
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(Theme.Colors.text.opacity(0.6))
+                    }
+
                     // Title
                     Text(languageManager.localized("home.title"))
                         .font(.system(size: 22, weight: .bold))
@@ -189,7 +211,7 @@ struct HomeView: View {
 
                     Spacer()
 
-                    // Action buttons - all same color for consistency
+                    // Action buttons
                     HStack(spacing: 20) {
                         // Search
                         Button {
@@ -219,24 +241,6 @@ struct HomeView: View {
                                         .offset(x: 2, y: -2)
                                 }
                             }
-                        }
-
-                        // Statistics
-                        Button {
-                            showingStatistics = true
-                        } label: {
-                            Image(systemName: "chart.bar")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(Theme.Colors.text.opacity(0.6))
-                        }
-
-                        // Settings
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(Theme.Colors.text.opacity(0.6))
                         }
                     }
                 }

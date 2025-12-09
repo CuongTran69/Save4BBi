@@ -72,14 +72,26 @@ struct AddVisitView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(lang.localized("button.cancel")) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text(lang.localized("button.cancel"))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Theme.Colors.text.opacity(0.7))
                     }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(lang.localized("button.save")) {
+                    Button {
                         saveVisit()
+                    } label: {
+                        Text(lang.localized("button.save"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(isFormValid && !isSaving ? .white : Theme.Colors.text.opacity(0.3))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.text.opacity(0.1))
+                            .cornerRadius(8)
                     }
                     .disabled(!isFormValid || isSaving)
                 }
@@ -320,15 +332,11 @@ struct AddVisitView: View {
                 FormField(title: lang.localized("visit.doctor"), placeholder: lang.localized("visit.doctor.placeholder"), text: $doctorName)
 
                 // Visit Date
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text(lang.localized("visit.date"))
-                        .font(Theme.Typography.subheadline)
-                        .foregroundColor(Theme.Colors.text.opacity(0.7))
-
-                    DatePicker("", selection: $visitDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                }
+                CustomDatePicker(
+                    lang.localized("visit.date"),
+                    selection: $visitDate,
+                    mode: .date
+                )
             }
             .padding(Theme.Spacing.md)
             .cardStyle()

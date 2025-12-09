@@ -9,10 +9,13 @@ import SwiftUI
 
 extension View {
     /// Adds a tap gesture to dismiss keyboard when tapping outside of text fields
+    /// Uses simultaneousGesture to avoid blocking other interactive elements like DatePicker
     func dismissKeyboardOnTap() -> some View {
-        self.onTapGesture {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
+        self.simultaneousGesture(
+            TapGesture().onEnded {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        )
     }
     
     /// Wraps the view in a ScrollView with keyboard dismiss on drag

@@ -11,6 +11,7 @@ import SwiftData
 struct GridLayout: View {
     let visits: [MedicalVisit]
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
 
     private let photoService = PhotoService.shared
 
@@ -26,13 +27,23 @@ struct GridLayout: View {
                 NavigationLink {
                     VisitDetailView(visit: visit)
                 } label: {
-                    VisitCard(visit: visit, onDelete: { deleteVisit(visit) }, isCompact: true)
+                    VisitCard(
+                        visit: visit,
+                        member: memberFor(visit),
+                        onDelete: { deleteVisit(visit) },
+                        isCompact: true
+                    )
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
+    }
+
+    private func memberFor(_ visit: MedicalVisit) -> FamilyMember? {
+        guard let memberId = visit.memberId else { return nil }
+        return members.first { $0.id == memberId }
     }
 
     private func deleteVisit(_ visit: MedicalVisit) {

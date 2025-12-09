@@ -41,11 +41,23 @@ struct FamilyMembersView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(lang.localized("button.done")) { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(lang.localized("button.done"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Theme.Colors.primary)
+                            .cornerRadius(8)
+                    }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button { showingAddMember = true } label: {
                         Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Theme.Colors.primary)
                     }
                 }
             }

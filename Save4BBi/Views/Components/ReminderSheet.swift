@@ -83,7 +83,13 @@ struct ReminderSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(lang.localized("reminder.cancel")) { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(lang.localized("button.cancel"))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Theme.Colors.text.opacity(0.7))
+                    }
                 }
             }
             .alert(lang.localized("reminder.success"), isPresented: $showSuccess) {
@@ -180,19 +186,15 @@ struct ReminderSheet: View {
 
     // MARK: - Custom Date Section
     private var customDateSection: some View {
-        VStack(spacing: Theme.Spacing.sm) {
-            DatePicker(
-                "",
-                selection: $customDate,
-                in: Date()...,
-                displayedComponents: [.date, .hourAndMinute]
-            )
-            .datePickerStyle(.graphical)
-            .tint(Theme.Colors.primary)
-            .padding(Theme.Spacing.md)
-            .background(Theme.Colors.cardBackground)
-            .cornerRadius(Theme.CornerRadius.large)
-        }
+        let futureRange = Date()...Date(timeIntervalSinceNow: 365 * 24 * 60 * 60 * 10) // 10 years from now
+
+        return CustomDatePicker(
+            lang.localized("reminder.custom_date"),
+            selection: $customDate,
+            mode: .dateAndTime,
+            in: futureRange,
+            showLabel: false
+        )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 

@@ -61,9 +61,19 @@ struct VisitDetailView: View {
             .padding(Theme.Spacing.md)
         }
         .background(Theme.Colors.background)
-        .navigationTitle(lang.localized("visit.edit.title"))
+        .navigationTitle(lang.localized("visit.detail.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Theme.Colors.text.opacity(0.5))
+                }
+            }
+
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {

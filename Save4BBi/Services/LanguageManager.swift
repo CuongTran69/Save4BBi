@@ -85,6 +85,7 @@ struct LocalizedStrings {
         // Add/Edit Visit
         "visit.add.title": "New Visit",
         "visit.edit.title": "Edit Visit",
+        "visit.detail.title": "Visit Details",
         "visit.date": "Visit Date",
         "visit.title": "Title",
         "visit.title.placeholder": "e.g., Annual Checkup",
@@ -345,6 +346,7 @@ struct LocalizedStrings {
         // Add/Edit Visit
         "visit.add.title": "Thêm Lần Khám",
         "visit.edit.title": "Sửa Lần Khám",
+        "visit.detail.title": "Chi Tiết Lần Khám",
         "visit.date": "Ngày Khám",
         "visit.title": "Tiêu Đề",
         "visit.title.placeholder": "VD: Khám định kỳ",

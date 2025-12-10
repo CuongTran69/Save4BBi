@@ -13,13 +13,15 @@ struct ListLayout: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
 
+    @State private var selectedVisit: MedicalVisit?
+
     private let photoService = PhotoService.shared
 
     var body: some View {
         LazyVStack(spacing: 12) {
             ForEach(visits) { visit in
-                NavigationLink {
-                    VisitDetailView(visit: visit)
+                Button {
+                    selectedVisit = visit
                 } label: {
                     VisitCard(
                         visit: visit,
@@ -33,6 +35,11 @@ struct ListLayout: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
+        .sheet(item: $selectedVisit) { visit in
+            NavigationStack {
+                VisitDetailView(visit: visit)
+            }
+        }
     }
 
     private func memberFor(_ visit: MedicalVisit) -> FamilyMember? {

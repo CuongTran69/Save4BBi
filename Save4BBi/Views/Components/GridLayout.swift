@@ -13,6 +13,8 @@ struct GridLayout: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
 
+    @State private var selectedVisit: MedicalVisit?
+
     private let photoService = PhotoService.shared
 
     // Grid columns with fixed spacing
@@ -24,8 +26,8 @@ struct GridLayout: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 12) {
             ForEach(visits) { visit in
-                NavigationLink {
-                    VisitDetailView(visit: visit)
+                Button {
+                    selectedVisit = visit
                 } label: {
                     VisitCard(
                         visit: visit,
@@ -39,6 +41,11 @@ struct GridLayout: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
+        .sheet(item: $selectedVisit) { visit in
+            NavigationStack {
+                VisitDetailView(visit: visit)
+            }
+        }
     }
 
     private func memberFor(_ visit: MedicalVisit) -> FamilyMember? {

@@ -55,11 +55,16 @@ final class MedicalVisit: Identifiable {
 
 // MARK: - Computed Properties
 extension MedicalVisit {
-    var formattedDate: String {
+    // Static formatter to avoid expensive re-creation
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
-        return formatter.string(from: visitDate)
+        return formatter
+    }()
+
+    var formattedDate: String {
+        Self.dateFormatter.string(from: visitDate)
     }
     
     var photoCount: Int {

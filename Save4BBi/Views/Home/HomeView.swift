@@ -18,6 +18,7 @@ struct HomeView: View {
     @Query(sort: \MedicalVisit.visitDate, order: .reverse) private var visits: [MedicalVisit]
     @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
     @Query(sort: \Reminder.scheduledDate) private var reminders: [Reminder]
+    @Query(sort: \Tag.createdAt) private var allTags: [Tag]
     @ObservedObject private var languageManager = LanguageManager.shared
     @ObservedObject private var memberManager = MemberManager.shared
 
@@ -51,14 +52,14 @@ struct HomeView: View {
             result = result.filter { $0.memberId == selectedMemberId }
         }
 
-        // Apply search filter
+        // Apply search filter (includes tag search)
         if !searchText.isEmpty {
             result = result.filter { visit in
                 visit.title.localizedCaseInsensitiveContains(searchText) ||
                 visit.condition.localizedCaseInsensitiveContains(searchText) ||
                 visit.doctorName.localizedCaseInsensitiveContains(searchText) ||
                 visit.notes.localizedCaseInsensitiveContains(searchText) ||
-                visit.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
+                matchesTagSearch(visit: visit, searchText: searchText)
             }
         }
 
@@ -66,6 +67,27 @@ struct HomeView: View {
         result.sort { $0.visitDate > $1.visitDate }
 
         return result
+    }
+
+    /// Check if visit matches tag search - searches both tag IDs and localized names
+    private func matchesTagSearch(visit: MedicalVisit, searchText: String) -> Bool {
+        for tagIdString in visit.tags {
+            // Try to find tag by UUID
+            if let uuid = UUID(uuidString: tagIdString),
+               let tag = allTags.first(where: { $0.id == uuid }) {
+                // Search in both EN and VI names
+                if tag.name.localizedCaseInsensitiveContains(searchText) ||
+                   tag.nameVI.localizedCaseInsensitiveContains(searchText) {
+                    return true
+                }
+            } else {
+                // Legacy: direct string match for old data
+                if tagIdString.localizedCaseInsensitiveContains(searchText) {
+                    return true
+                }
+            }
+        }
+        return false
     }
     
     var body: some View {
@@ -282,6 +304,9 @@ struct HomeView: View {
         .padding(.top, Theme.Spacing.sm)
         .padding(.bottom, Theme.Spacing.sm)
         .background(Theme.Colors.background)
+        .onAppear {
+            TagManager.shared.initializeDefaultTags(context: modelContext)
+        }
     }
 
     // MARK: - Member Selector View

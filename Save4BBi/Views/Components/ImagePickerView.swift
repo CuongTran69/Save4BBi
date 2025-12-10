@@ -177,74 +177,102 @@ struct PhotoSourceSheet: View {
     }
 }
 
-// MARK: - Photos Picker Sheet (Single Image)
-struct PhotosPickerSheet: View {
+// MARK: - Photos Picker Sheet (Single Image) - Using PHPicker
+struct PhotosPickerSheet: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedItem: PhotosPickerItem?
 
-    var body: some View {
-        PhotosPicker(selection: $selectedItem, matching: .images) {
-            Text("Select Photo")
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 1
+        config.filter = .images
+
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PhotosPickerSheet
+
+        init(_ parent: PhotosPickerSheet) {
+            self.parent = parent
         }
-        .photosPickerStyle(.inline)
-        .photosPickerAccessoryVisibility(.hidden)
-        .onChange(of: selectedItem) { _, newItem in
-            Task {
-                if let data = try? await newItem?.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    selectedImage = image
-                    dismiss()
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            guard let result = results.first else {
+                parent.dismiss()
+                return
+            }
+
+            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+                DispatchQueue.main.async {
+                    if let image = object as? UIImage {
+                        self?.parent.selectedImage = image
+                    }
+                    self?.parent.dismiss()
                 }
             }
         }
     }
 }
 
-// MARK: - Photos Picker Sheet (Multiple Images)
-struct MultiPhotosPickerSheet: View {
+// MARK: - Photos Picker Sheet (Multiple Images) - Using PHPicker
+struct MultiPhotosPickerSheet: UIViewControllerRepresentable {
     @Binding var selectedImages: [UIImage]
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedItems: [PhotosPickerItem] = []
-    @ObservedObject private var lang = LanguageManager.shared
 
-    var body: some View {
-        NavigationStack {
-            PhotosPicker(selection: $selectedItems, maxSelectionCount: 10, matching: .images) {
-                Text("Select Photos")
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 10
+        config.filter = .images
+
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: MultiPhotosPickerSheet
+
+        init(_ parent: MultiPhotosPickerSheet) {
+            self.parent = parent
+        }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            guard !results.isEmpty else {
+                parent.dismiss()
+                return
             }
-            .photosPickerStyle(.inline)
-            .photosPickerAccessoryVisibility(.hidden)
-            .onChange(of: selectedItems) { _, newItems in
-                Task {
-                    for item in newItems {
-                        if let data = try? await item.loadTransferable(type: Data.self),
-                           let image = UIImage(data: data) {
-                            await MainActor.run {
-                                if !selectedImages.contains(where: { $0.pngData() == image.pngData() }) {
-                                    selectedImages.append(image)
-                                }
-                            }
-                        }
+
+            let group = DispatchGroup()
+            var loadedImages: [UIImage] = []
+
+            for result in results {
+                group.enter()
+                result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
+                    if let image = object as? UIImage {
+                        loadedImages.append(image)
                     }
+                    group.leave()
                 }
             }
-            .navigationTitle(lang.localized("photo.source.library"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text(lang.localized("button.done"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Theme.Colors.primary)
-                            .cornerRadius(8)
-                    }
-                }
+
+            group.notify(queue: .main) { [weak self] in
+                self?.parent.selectedImages.append(contentsOf: loadedImages)
+                self?.parent.dismiss()
             }
         }
     }

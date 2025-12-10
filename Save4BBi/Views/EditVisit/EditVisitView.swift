@@ -12,6 +12,7 @@ import SwiftData
 struct EditVisitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Tag.createdAt) private var allTags: [Tag]
 
     let visit: MedicalVisit
 
@@ -20,7 +21,7 @@ struct EditVisitView: View {
     @State private var doctorName: String
     @State private var notes: String
     @State private var visitDate: Date
-    @State private var selectedTags: Set<String>
+    @State private var selectedTagIds: Set<String>
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var photoImages: [UIImage] = []
     @State private var existingPhotoFilePaths: [String]
@@ -29,6 +30,7 @@ struct EditVisitView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showError = false
+    @State private var hasLoadedTagIds = false
 
     // Photo source
     @State private var showCamera = false
@@ -37,8 +39,6 @@ struct EditVisitView: View {
 
     private let photoService = PhotoService.shared
 
-    let availableTags = ["Checkup", "Vaccination", "Emergency", "Dental", "Fever", "Routine"]
-
     init(visit: MedicalVisit) {
         self.visit = visit
         _title = State(initialValue: visit.title)
@@ -46,8 +46,15 @@ struct EditVisitView: View {
         _doctorName = State(initialValue: visit.doctorName)
         _notes = State(initialValue: visit.notes)
         _visitDate = State(initialValue: visit.visitDate)
-        _selectedTags = State(initialValue: Set(visit.tags))
+        _selectedTagIds = State(initialValue: Set<String>())
         _existingPhotoFilePaths = State(initialValue: visit.photoFilePaths)
+    }
+
+    // Convert selected tag IDs to tag names for storage
+    private var selectedTagNames: [String] {
+        selectedTagIds.compactMap { tagId in
+            allTags.first { $0.id.uuidString == tagId }?.name
+        }
     }
     
     var body: some View {
@@ -70,7 +77,7 @@ struct EditVisitView: View {
             }
             .dismissKeyboardOnTap()
             .background(Theme.Colors.background)
-            .navigationTitle("Edit Visit")
+            .navigationTitle(lang.localized("visit.edit.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -99,23 +106,23 @@ struct EditVisitView: View {
                 }
             }
         }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
+        .alert(lang.localized("error.title"), isPresented: $showError) {
+            Button(lang.localized("button.ok"), role: .cancel) { }
         } message: {
-            Text(errorMessage ?? "An error occurred")
+            Text(errorMessage ?? lang.localized("error.unknown"))
         }
         .overlay {
             if isSaving {
                 ZStack {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
-                    
+
                     VStack(spacing: Theme.Spacing.md) {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
                             .scaleEffect(1.5)
-                        
-                        Text("Saving changes...")
+
+                        Text(lang.localized("saving"))
                             .font(Theme.Typography.body)
                             .foregroundColor(Theme.Colors.text)
                     }
@@ -381,34 +388,28 @@ struct EditVisitView: View {
     
     // MARK: - Tags Section
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Tags")
-                .font(Theme.Typography.title3)
-                .foregroundColor(Theme.Colors.text)
-            
-            FlowLayout(spacing: Theme.Spacing.sm) {
-                ForEach(availableTags, id: \.self) { tag in
-                    TagButton(
-                        text: tag,
-                        isSelected: selectedTags.contains(tag)
-                    ) {
-                        if selectedTags.contains(tag) {
-                            selectedTags.remove(tag)
-                        } else {
-                            selectedTags.insert(tag)
-                        }
-                    }
-                }
+        TagSelectorView(selectedTagIds: $selectedTagIds)
+            .onAppear {
+                loadTagIds()
             }
-            .padding(Theme.Spacing.md)
-            .cardStyle()
-        }
     }
-    
+
+    // Load tag IDs from tag names (only once when allTags is available)
+    private func loadTagIds() {
+        guard !hasLoadedTagIds && !allTags.isEmpty else { return }
+        hasLoadedTagIds = true
+
+        // Convert tag names to tag IDs
+        let tagIds: Set<String> = Set(visit.tags.compactMap { tagName in
+            allTags.first { $0.name == tagName || $0.nameVI == tagName }?.id.uuidString
+        })
+        selectedTagIds = tagIds
+    }
+
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Notes")
+            Text(lang.localized("visit.notes"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
             
@@ -479,9 +480,9 @@ struct EditVisitView: View {
         visit.doctorName = doctorName
         visit.notes = notes
         visit.visitDate = visitDate
-        visit.tags = Array(selectedTags)
+        visit.tags = selectedTagNames
         visit.updatedAt = Date()
-        
+
         // Append new photos to existing ones
         visit.photoFilePaths = existingPhotoFilePaths + newPhotoFilePaths
         

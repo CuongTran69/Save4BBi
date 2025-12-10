@@ -71,12 +71,12 @@ struct FullScreenPhotoViewer: View {
 // MARK: - Zoomable Image View
 struct ZoomableImageView: View {
     let image: UIImage
-    
+
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
-    
+
     var body: some View {
         GeometryReader { geometry in
             Image(uiImage: image)
@@ -84,6 +84,7 @@ struct ZoomableImageView: View {
                 .scaledToFit()
                 .scaleEffect(scale)
                 .offset(offset)
+                .frame(width: geometry.size.width, height: geometry.size.height)
                 .gesture(
                     MagnificationGesture()
                         .onChanged { value in
@@ -101,8 +102,9 @@ struct ZoomableImageView: View {
                             }
                         }
                 )
-                .gesture(
-                    DragGesture()
+                .simultaneousGesture(
+                    // Only allow drag when zoomed in
+                    DragGesture(minimumDistance: scale > 1 ? 0 : 1000)
                         .onChanged { value in
                             if scale > 1 {
                                 offset = CGSize(

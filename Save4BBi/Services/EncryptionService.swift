@@ -122,14 +122,14 @@ final class EncryptionService {
 }
 
 // MARK: - Errors
-enum EncryptionError: Error {
+enum EncryptionError: LocalizedError {
     case encryptionFailed(Error)
     case decryptionFailed(Error)
     case invalidData
     case invalidString
     case keyNotFound
-    
-    var localizedDescription: String {
+
+    var errorDescription: String? {
         switch self {
         case .encryptionFailed(let error):
             return "Encryption failed: \(error.localizedDescription)"

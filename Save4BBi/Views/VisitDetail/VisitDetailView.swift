@@ -27,6 +27,8 @@ struct VisitDetailView: View {
 
     // Member for this visit
     @Query private var members: [FamilyMember]
+    @Query(sort: \Tag.createdAt) private var allTags: [Tag]
+
     private var member: FamilyMember? {
         guard let memberId = visit.memberId else { return nil }
         return members.first { $0.id == memberId }
@@ -59,7 +61,7 @@ struct VisitDetailView: View {
             .padding(Theme.Spacing.md)
         }
         .background(Theme.Colors.background)
-        .navigationTitle("Visit Details")
+        .navigationTitle(lang.localized("visit.edit.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -73,13 +75,13 @@ struct VisitDetailView: View {
                     Button {
                         showingEditView = true
                     } label: {
-                        Label("Edit", systemImage: "pencil")
+                        Label(lang.localized("button.edit"), systemImage: "pencil")
                     }
 
                     Button(role: .destructive) {
                         showingDeleteAlert = true
                     } label: {
-                        Label("Delete", systemImage: "trash")
+                        Label(lang.localized("button.delete"), systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -95,7 +97,10 @@ struct VisitDetailView: View {
         } message: {
             Text(lang.localized("delete.message"))
         }
-        .sheet(isPresented: $showingEditView) {
+        .sheet(isPresented: $showingEditView, onDismiss: {
+            // Reload photos after editing
+            loadPhotos()
+        }) {
             EditVisitView(visit: visit)
         }
         .sheet(isPresented: $showingReminderSheet) {
@@ -105,6 +110,10 @@ struct VisitDetailView: View {
             FullScreenPhotoViewer(images: loadedImages, initialIndex: selectedPhotoIndex)
         }
         .onAppear {
+            loadPhotos()
+        }
+        .onChange(of: visit.updatedAt) { _, _ in
+            // Refresh when visit is updated
             loadPhotos()
         }
     }
@@ -152,13 +161,13 @@ struct VisitDetailView: View {
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             HStack {
-                Text("Photos (\(visit.photoCount))")
+                Text("\(lang.localized("detail.photos")) (\(visit.photoCount))")
                     .font(Theme.Typography.title3)
                     .foregroundColor(Theme.Colors.text)
 
                 Spacer()
 
-                Text("Tap to view")
+                Text(lang.localized("detail.tap_to_view"))
                     .font(Theme.Typography.caption)
                     .foregroundColor(Theme.Colors.text.opacity(0.5))
             }
@@ -167,7 +176,7 @@ struct VisitDetailView: View {
                 HStack {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: Theme.Colors.primary))
-                    Text("Loading photos...")
+                    Text(lang.localized("detail.loading_photos"))
                         .font(Theme.Typography.body)
                         .foregroundColor(Theme.Colors.text.opacity(0.6))
                 }
@@ -196,18 +205,18 @@ struct VisitDetailView: View {
     // MARK: - Information Card
     private var informationCard: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            Text("Information")
+            Text(lang.localized("detail.information"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
             if !visit.doctorName.isEmpty {
-                InfoRow(icon: "stethoscope", title: "Doctor", value: visit.doctorName)
+                InfoRow(icon: "stethoscope", title: lang.localized("detail.doctor"), value: visit.doctorName)
             }
 
-            InfoRow(icon: "clock", title: "Created", value: formatDate(visit.createdAt))
+            InfoRow(icon: "clock", title: lang.localized("detail.created"), value: formatDate(visit.createdAt))
 
             if visit.updatedAt != visit.createdAt {
-                InfoRow(icon: "arrow.clockwise", title: "Updated", value: formatDate(visit.updatedAt))
+                InfoRow(icon: "arrow.clockwise", title: lang.localized("detail.updated"), value: formatDate(visit.updatedAt))
             }
         }
         .padding(Theme.Spacing.md)
@@ -217,7 +226,7 @@ struct VisitDetailView: View {
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Notes")
+            Text(lang.localized("detail.notes"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
@@ -238,16 +247,37 @@ struct VisitDetailView: View {
     // MARK: - Tags Section
     private var tagsSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Tags")
+            Text(lang.localized("detail.tags"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
 
             FlowLayout(spacing: Theme.Spacing.sm) {
-                ForEach(visit.tags, id: \.self) { tag in
-                    TagView(text: tag)
+                ForEach(visit.tags, id: \.self) { tagName in
+                    tagChipView(for: tagName)
                 }
             }
         }
+    }
+
+    // MARK: - Tag Chip View
+    @ViewBuilder
+    private func tagChipView(for tagName: String) -> some View {
+        let tag = allTags.first { $0.name == tagName || $0.nameVI == tagName }
+        let icon = tag?.icon ?? "🏷️"
+        let colorHex = tag?.colorHex ?? "A8D8EA"
+        let displayName = tag?.localizedName ?? tagName
+
+        HStack(spacing: 4) {
+            Text(icon)
+                .font(.system(size: 12))
+            Text(displayName)
+                .font(.system(size: 13, weight: .medium))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color(hex: colorHex).opacity(0.2))
+        .foregroundColor(Color(hex: colorHex).darker())
+        .cornerRadius(Theme.CornerRadius.small)
     }
 
     // MARK: - Helper Functions

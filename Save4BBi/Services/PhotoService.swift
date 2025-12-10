@@ -10,31 +10,45 @@ import Kingfisher
 import RxSwift
 
 /// Service for photo capture, compression, and storage
+/// Thread-safe singleton for managing encrypted photo storage
 final class PhotoService {
-    
+
     // MARK: - Singleton
     static let shared = PhotoService()
-    
+
     // MARK: - Properties
     private let encryptionService = EncryptionService.shared
     private let fileManager = FileManager.default
-    private let disposeBag = DisposeBag()
-    
-    // Photo storage directory
-    private lazy var photosDirectory: URL = {
+
+    /// Serial queue for thread-safe file operations
+    private let fileOperationQueue = DispatchQueue(label: "com.mediFamily.photoService", qos: .userInitiated)
+
+    // Photo storage directory (lazily initialized, thread-safe via serial queue)
+    private var _photosDirectory: URL?
+    private var photosDirectory: URL {
+        if let dir = _photosDirectory {
+            return dir
+        }
+
         let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let photosPath = documentsPath.appendingPathComponent("EncryptedPhotos", isDirectory: true)
-        
+
         // Create directory if it doesn't exist
         if !fileManager.fileExists(atPath: photosPath.path) {
             try? fileManager.createDirectory(at: photosPath, withIntermediateDirectories: true)
         }
-        
+
+        _photosDirectory = photosPath
         return photosPath
-    }()
-    
+    }
+
     // MARK: - Initialization
-    private init() {}
+    private init() {
+        // Pre-initialize the photos directory on the serial queue
+        fileOperationQueue.async { [weak self] in
+            _ = self?.photosDirectory
+        }
+    }
     
     // MARK: - Photo Processing
     
@@ -68,128 +82,142 @@ final class PhotoService {
     /// Resize image to maximum dimensions
     func resizeImage(_ image: UIImage, maxWidth: CGFloat = 1920, maxHeight: CGFloat = 1920) -> UIImage {
         let size = image.size
-        
-        // Calculate new size maintaining aspect ratio
-        var newSize = size
-        if size.width > maxWidth || size.height > maxHeight {
-            let widthRatio = maxWidth / size.width
-            let heightRatio = maxHeight / size.height
-            let ratio = min(widthRatio, heightRatio)
-            newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+
+        // Skip resize if already within bounds
+        guard size.width > maxWidth || size.height > maxHeight else {
+            return image
         }
-        
-        // Resize image
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return resizedImage ?? image
+
+        // Calculate new size maintaining aspect ratio
+        let widthRatio = maxWidth / size.width
+        let heightRatio = maxHeight / size.height
+        let ratio = min(widthRatio, heightRatio)
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+
+        // Use modern UIGraphicsImageRenderer (iOS 10+)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
     
     // MARK: - Photo Storage
-    
-    /// Save photo with encryption
+
+    /// Save photo with encryption (thread-safe)
     func savePhoto(_ image: UIImage) -> Observable<String> {
         // 1. Resize image
         let resizedImage = resizeImage(image)
-        
+
         // 2. Compress image
         return compressImage(resizedImage)
             .flatMap { [weak self] imageData -> Observable<String> in
                 guard let self = self else {
                     return Observable.error(PhotoError.serviceUnavailable)
                 }
-                
+
                 // 3. Encrypt image data
                 return self.encryptionService.encryptPhoto(imageData)
-                    .flatMap { encryptedData -> Observable<String> in
-                        // 4. Generate unique filename
-                        let filename = UUID().uuidString + ".enc"
-                        let fileURL = self.photosDirectory.appendingPathComponent(filename)
-                        
-                        // 5. Save to disk
-                        do {
-                            try encryptedData.write(to: fileURL)
-                            return Observable.just(filename)
-                        } catch {
-                            return Observable.error(PhotoError.saveFailed(error))
+                    .flatMap { [weak self] encryptedData -> Observable<String> in
+                        guard let self = self else {
+                            return Observable.error(PhotoError.serviceUnavailable)
+                        }
+
+                        // 4. Save to disk on serial queue for thread safety
+                        return Observable.create { observer in
+                            self.fileOperationQueue.async {
+                                let filename = UUID().uuidString + ".enc"
+                                let fileURL = self.photosDirectory.appendingPathComponent(filename)
+
+                                do {
+                                    try encryptedData.write(to: fileURL)
+                                    observer.onNext(filename)
+                                    observer.onCompleted()
+                                } catch {
+                                    observer.onError(PhotoError.saveFailed(error))
+                                }
+                            }
+                            return Disposables.create()
                         }
                     }
             }
     }
-    
-    /// Load and decrypt photo
+
+    /// Load and decrypt photo (thread-safe)
     func loadPhoto(filename: String) -> Observable<UIImage> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
                 observer.onError(PhotoError.serviceUnavailable)
                 return Disposables.create()
             }
-            
-            let fileURL = self.photosDirectory.appendingPathComponent(filename)
-            
-            // 1. Read encrypted data from disk
-            guard let encryptedData = try? Data(contentsOf: fileURL) else {
-                observer.onError(PhotoError.fileNotFound)
-                return Disposables.create()
-            }
-            
-            // 2. Decrypt data
-            self.encryptionService.decryptPhoto(encryptedData)
-                .subscribe(
-                    onNext: { decryptedData in
-                        // 3. Convert to UIImage
-                        if let image = UIImage(data: decryptedData) {
-                            observer.onNext(image)
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(PhotoError.invalidImageData)
+
+            // Read file on serial queue for thread safety
+            self.fileOperationQueue.async {
+                let fileURL = self.photosDirectory.appendingPathComponent(filename)
+
+                guard let encryptedData = try? Data(contentsOf: fileURL) else {
+                    observer.onError(PhotoError.fileNotFound)
+                    return
+                }
+
+                // Decrypt and return image
+                _ = self.encryptionService.decryptPhoto(encryptedData)
+                    .subscribe(
+                        onNext: { decryptedData in
+                            if let image = UIImage(data: decryptedData) {
+                                observer.onNext(image)
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(PhotoError.invalidImageData)
+                            }
+                        },
+                        onError: { error in
+                            observer.onError(error)
                         }
-                    },
-                    onError: { error in
-                        observer.onError(error)
-                    }
-                )
-                .disposed(by: self.disposeBag)
-            
+                    )
+            }
             return Disposables.create()
         }
     }
-    
-    /// Delete photo file
+
+    /// Delete photo file (thread-safe)
     func deletePhoto(filename: String) -> Observable<Void> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
                 observer.onError(PhotoError.serviceUnavailable)
                 return Disposables.create()
             }
-            
-            let fileURL = self.photosDirectory.appendingPathComponent(filename)
-            
-            do {
-                try self.fileManager.removeItem(at: fileURL)
-                observer.onNext(())
-                observer.onCompleted()
-            } catch {
-                observer.onError(PhotoError.deletionFailed(error))
+
+            // Delete file on serial queue for thread safety
+            self.fileOperationQueue.async {
+                let fileURL = self.photosDirectory.appendingPathComponent(filename)
+
+                do {
+                    try self.fileManager.removeItem(at: fileURL)
+                    observer.onNext(())
+                    observer.onCompleted()
+                } catch {
+                    observer.onError(PhotoError.deletionFailed(error))
+                }
             }
-            
+
             return Disposables.create()
         }
     }
 }
 
 // MARK: - Errors
-enum PhotoError: Error {
+enum PhotoError: LocalizedError {
     case serviceUnavailable
     case compressionFailed
     case saveFailed(Error)
     case fileNotFound
     case invalidImageData
     case deletionFailed(Error)
-    
-    var localizedDescription: String {
+
+    var errorDescription: String? {
         switch self {
         case .serviceUnavailable:
             return "Photo service is unavailable"

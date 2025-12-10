@@ -55,8 +55,16 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 ### FR-3: Data Organization
 - **FR-3.1**: WHEN a user views the home screen THE SYSTEM SHALL organize visits by most recent first (default)
 - **FR-3.2**: WHEN a user selects sort options THE SYSTEM SHALL allow sorting by date (newest/oldest), condition name (A-Z), or frequency
-- **FR-3.3**: WHEN a user creates tags/categories THE SYSTEM SHALL allow grouping visits by custom categories (e.g., "Vaccinations", "Checkups", "Emergencies")
+- **FR-3.3**: ✅ WHEN a user creates tags/categories THE SYSTEM SHALL allow grouping visits by custom categories (e.g., "Vaccinations", "Checkups", "Emergencies") - IMPLEMENTED
 - **FR-3.4**: WHEN a user views statistics THE SYSTEM SHALL display visit frequency, common conditions, and timeline visualization
+
+### FR-9: Tag Management ✅ IMPLEMENTED (Phase 4)
+- **FR-9.1**: WHEN a user views AddVisit/EditVisit THE SYSTEM SHALL display 6 default tags (Checkup, Vaccination, Emergency, Dental, Fever, Routine)
+- **FR-9.2**: WHEN a user taps manage tags THE SYSTEM SHALL allow adding custom tags with icon and color
+- **FR-9.3**: WHEN a user edits a custom tag THE SYSTEM SHALL update name (EN/VI), icon, and color
+- **FR-9.4**: WHEN a user deletes a custom tag THE SYSTEM SHALL remove it (default tags cannot be deleted)
+- **FR-9.5**: WHEN a user searches THE SYSTEM SHALL find visits by tag name (both EN and VI)
+- **FR-9.6**: WHEN a user views tags THE SYSTEM SHALL display localized names based on current language
 
 ### FR-4: Security & Privacy
 - **FR-4.1**: WHEN a user first launches the app THE SYSTEM SHALL require biometric authentication setup (Face ID/Touch ID)
@@ -250,7 +258,20 @@ Based on HIPAA best practices research (even though this is a personal app, secu
 7. ✅ **Full-Screen Photo Viewer** - Swipe between photos with pinch-to-zoom
 8. ✅ **Empty States** - Friendly illustrations for empty data
 
-### 🔮 Future Enhancements (Phase 4+)
+### ✅ Phase 4 Features - COMPLETED (Tag Management & Photo Improvements)
+1. ✅ **Tag Model** - SwiftData model with name (EN/VI), icon, colorHex, isDefault
+2. ✅ **6 Default Tags** - Checkup, Vaccination, Emergency, Dental, Fever, Routine (cannot delete)
+3. ✅ **Custom Tags** - Add new tags with custom emoji icon and color picker
+4. ✅ **Edit Tags** - Update name (EN/VI), icon, color for custom tags
+5. ✅ **Delete Tags** - Remove custom tags (default tags protected)
+6. ✅ **Search by Tag** - Find visits by tag name (supports both EN and VI)
+7. ✅ **Tag Localization** - Display localized tag names based on current language
+8. ✅ **PHPickerViewController** - Replaced SwiftUI PhotosPicker with UIKit for reliability
+9. ✅ **Camera Permissions** - Added NSCameraUsageDescription and NSPhotoLibraryUsageDescription
+10. ✅ **Photo Viewer Navigation** - Fixed swipe between photos when not zoomed
+11. ✅ **Edit Visit Refresh** - Auto-refresh detail view after editing
+
+### 🔮 Future Enhancements (Phase 5+)
 1. ❌ PDF attachment support (lab results, prescriptions)
 2. ❌ Voice notes recording and playback
 3. ❌ Export to PDF report with photos and metadata
@@ -301,7 +322,8 @@ Save4BBi/                          # Project folder (legacy name)
 ├── Models/
 │   ├── MedicalVisit.swift         # Visit model with encrypted photos
 │   ├── FamilyMember.swift         # Member model (child/adult/senior)
-│   └── Reminder.swift             # Reminder model with notification ID
+│   ├── Reminder.swift             # Reminder model with notification ID
+│   └── Tag.swift                  # Tag model with name (EN/VI), icon, color
 ├── Views/
 │   ├── SplashScreenView.swift     # Animated splash screen
 │   ├── Authentication/
@@ -333,7 +355,11 @@ Save4BBi/                          # Project folder (legacy name)
 │       ├── FullScreenPhotoViewer.swift  # Photo viewer
 │       ├── ReminderSheet.swift    # Reminder creation sheet
 │       ├── CustomDialog.swift     # Custom alert dialog
-│       └── FlowLayout.swift       # Flow layout for tags
+│       ├── FlowLayout.swift       # Flow layout for tags
+│       ├── TagSelectorView.swift  # Tag selection component
+│       ├── AddTagSheet.swift      # Add new custom tag
+│       ├── EditTagSheet.swift     # Edit existing tag
+│       └── ManageTagsSheet.swift  # Manage all tags
 ├── Services/
 │   ├── Services.swift             # Central service access point
 │   ├── KeychainService.swift      # Secure key storage (RxSwift)
@@ -343,6 +369,7 @@ Save4BBi/                          # Project folder (legacy name)
 │   ├── NotificationManager.swift  # Local notifications (@MainActor)
 │   ├── LanguageManager.swift      # EN/VI localization (@MainActor)
 │   ├── MemberManager.swift        # Member selection (@MainActor)
+│   ├── TagManager.swift           # Tag CRUD operations (@MainActor)
 │   ├── CoreDataManager.swift      # Unused (legacy)
 │   └── README.md                  # Service documentation
 ├── Utilities/
@@ -645,6 +672,7 @@ Display in UI
 | **Data Models** | MedicalVisit | ✅ Done | SwiftData model with encrypted photos |
 | | FamilyMember | ✅ Done | SwiftData model with health fields |
 | | Reminder | ✅ Done | SwiftData model with notification ID |
+| | Tag | ✅ Done | SwiftData model with name (EN/VI), icon, color |
 | **Services** | PhotoService | ✅ Done | RxSwift-based photo processing |
 | | EncryptionService | ✅ Done | CryptoKit AES-256-GCM |
 | | KeychainService | ✅ Done | Secure key storage |
@@ -652,6 +680,16 @@ Display in UI
 | | NotificationManager | ✅ Done | @MainActor notification scheduling |
 | | LanguageManager | ✅ Done | @MainActor localization |
 | | MemberManager | ✅ Done | @MainActor member selection |
+| | TagManager | ✅ Done | @MainActor tag CRUD operations |
+| **Tag System** | Default Tags | ✅ Done | 6 built-in tags (cannot delete) |
+| | Custom Tags | ✅ Done | Add/Edit/Delete custom tags |
+| | Tag Icons | ✅ Done | Emoji icon selection |
+| | Tag Colors | ✅ Done | Color picker for tag background |
+| | Tag Localization | ✅ Done | EN/VI names per tag |
+| | Search by Tag | ✅ Done | Find visits by tag name |
+| **Photo Improvements** | PHPickerViewController | ✅ Done | UIKit picker for reliability |
+| | Camera Permissions | ✅ Done | Proper permission handling |
+| | Photo Viewer Nav | ✅ Done | Swipe between photos fixed |
 
 ---
 
@@ -678,15 +716,26 @@ Display in UI
 - Empty states and animations
 - Complete UI/UX polish
 
+### ✅ **PHASE 4 - Tag Management & Photo Improvements (100% Complete)**
+- Tag SwiftData model with localization
+- 6 default tags (Checkup, Vaccination, Emergency, Dental, Fever, Routine)
+- Custom tag CRUD (Add/Edit/Delete)
+- Tag icon (emoji) and color picker
+- Search visits by tag name (EN/VI)
+- PHPickerViewController for reliable photo selection
+- Camera/Photo Library permissions
+- Photo viewer swipe navigation fix
+- Edit visit auto-refresh
+
 ---
 
-**🎉 PHASE 3 COMPLETE - MEDIFAMILY FULLY FEATURED**
+**🎉 PHASE 4 COMPLETE - TAG MANAGEMENT & PHOTO IMPROVEMENTS**
 
-The app has evolved from Save4BBi (children-only) to MediFamily (whole family support) with advanced features including reminders, statistics, and comprehensive health tracking.
+The app now includes a comprehensive tag system with customizable tags and improved photo handling.
 
-**Total Features Implemented:** 40+ features across 7 major categories
+**Total Features Implemented:** 50+ features across 8 major categories
 **Code Quality:** Service-oriented architecture, reactive programming, military-grade security
-**User Experience:** Soft pastel design, smooth animations, bilingual support
+**User Experience:** Soft pastel design, smooth animations, bilingual support, customizable tags
 
 ---
 
@@ -1133,24 +1182,27 @@ App Launch
 ## 📊 PROJECT METRICS
 
 ### Code Statistics
-- **Total Lines of Code:** ~8,000+ lines
-- **Swift Files:** 40+ files
-- **Models:** 3 (MedicalVisit, FamilyMember, Reminder)
-- **Views:** 15+ screens
-- **Services:** 7 singleton services
-- **Components:** 10+ reusable UI components
+- **Total Lines of Code:** ~10,000+ lines
+- **Swift Files:** 45+ files
+- **Models:** 4 (MedicalVisit, FamilyMember, Reminder, Tag)
+- **Views:** 20+ screens
+- **Services:** 8 singleton services
+- **Components:** 15+ reusable UI components
 
 ### Feature Breakdown
 - **Core Features:** 8 features (100% complete)
 - **Family Support:** 6 features (100% complete)
 - **Advanced Features:** 8 features (100% complete)
-- **Total Features:** 40+ features implemented
+- **Tag Management:** 6 features (100% complete)
+- **Photo Improvements:** 3 features (100% complete)
+- **Total Features:** 50+ features implemented
 
 ### Development Timeline
 - **Phase 1 (MVP):** 2 weeks
 - **Phase 2 (Family Support):** 1 week
 - **Phase 3 (Advanced Features):** 1 week
-- **Total Development:** ~4 weeks
+- **Phase 4 (Tag Management & Photo):** 1 day
+- **Total Development:** ~5 weeks
 
 ### Code Quality Metrics
 - **Architecture:** Service-oriented, MVVM-like with SwiftUI
@@ -1176,6 +1228,9 @@ App Launch
 3. **Language Switching:** @Published property triggers UI updates
 4. **Notification Permissions:** Graceful handling of denied permissions
 5. **Memory Management:** Proper RxSwift disposal, Kingfisher caching
+6. **PhotosPicker Issues:** Replaced with UIKit PHPickerViewController for reliability
+7. **Tag UUID vs Name Storage:** Store tag names for persistence, lookup model for display
+8. **Photo Viewer Gesture Conflicts:** Fixed swipe vs zoom gesture handling
 
 ### Best Practices Applied
 1. **Security First:** Encryption, biometric auth, keychain storage
@@ -1211,7 +1266,7 @@ App Launch
 2. **App Store Preparation:** Screenshots, description, keywords
 3. **Beta Testing:** TestFlight with real users
 4. **Launch:** Submit to App Store
-5. **Iterate:** Gather feedback, implement Phase 4 features
+5. **Iterate:** Gather feedback, implement Phase 5 features
 
 ---
 
@@ -1219,8 +1274,8 @@ App Launch
 
 ---
 
-*Last Updated: December 9, 2025*
-*Version: 3.0 (Phase 3 Complete)*
+*Last Updated: December 10, 2025*
+*Version: 4.0 (Phase 4 Complete)*
 *Developer: Cường Trần*
 *Platform: iOS 16+*
 

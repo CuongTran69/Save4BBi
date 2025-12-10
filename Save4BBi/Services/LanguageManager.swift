@@ -154,6 +154,10 @@ struct LocalizedStrings {
         "error.save_photos": "Failed to save photos",
         "error.save_visit": "Failed to save visit",
         "error.ok": "OK",
+        "error.unknown": "An error occurred",
+
+        // Saving states
+        "saving": "Saving...",
 
         // Family Members
         "member.profiles": "Family Members",
@@ -292,6 +296,36 @@ struct LocalizedStrings {
         "menu.statistics": "Statistics",
         "menu.settings": "Settings",
         "menu.subtitle": "Family Health Tracker",
+
+        // Tag Management
+        "tag.manage": "Manage Tags",
+        "tag.add": "Add Tag",
+        "tag.edit": "Edit Tag",
+        "tag.delete": "Delete Tag",
+        "tag.name": "Tag Name (EN)",
+        "tag.name_vi": "Tag Name (VI)",
+        "tag.icon": "Icon",
+        "tag.color": "Color",
+        "tag.delete_confirm": "Are you sure you want to delete this tag?",
+        "tag.cannot_delete_default": "Default tags cannot be deleted",
+        "tag.custom": "Custom Tags",
+        "tag.default": "Default Tags",
+        "tag.filter": "Filter by Tags",
+        "tag.clear_filter": "Clear",
+        "tag.add_custom": "Add Custom Tag",
+        "tag.name.placeholder": "e.g., Allergy",
+        "tag.name_vi.placeholder": "e.g., Dị Ứng",
+
+        // Visit Detail
+        "detail.photos": "Photos",
+        "detail.tap_to_view": "Tap to view",
+        "detail.loading_photos": "Loading photos...",
+        "detail.information": "Information",
+        "detail.doctor": "Doctor",
+        "detail.created": "Created",
+        "detail.updated": "Updated",
+        "detail.notes": "Notes",
+        "detail.tags": "Tags",
     ]
     
     // MARK: - Vietnamese Strings
@@ -380,6 +414,10 @@ struct LocalizedStrings {
         "error.save_photos": "Không thể lưu ảnh",
         "error.save_visit": "Không thể lưu lần khám",
         "error.ok": "OK",
+        "error.unknown": "Đã xảy ra lỗi",
+
+        // Saving states
+        "saving": "Đang lưu...",
 
         // Family Members
         "member.profiles": "Thành Viên Gia Đình",
@@ -518,6 +556,36 @@ struct LocalizedStrings {
         "menu.statistics": "Thống Kê",
         "menu.settings": "Cài Đặt",
         "menu.subtitle": "Quản Lý Sức Khỏe Gia Đình",
+
+        // Tag Management
+        "tag.manage": "Quản Lý Nhãn",
+        "tag.add": "Thêm Nhãn",
+        "tag.edit": "Sửa Nhãn",
+        "tag.delete": "Xóa Nhãn",
+        "tag.name": "Tên Nhãn (EN)",
+        "tag.name_vi": "Tên Nhãn (VI)",
+        "tag.icon": "Biểu Tượng",
+        "tag.color": "Màu Sắc",
+        "tag.delete_confirm": "Bạn có chắc muốn xóa nhãn này?",
+        "tag.cannot_delete_default": "Không thể xóa nhãn mặc định",
+        "tag.custom": "Nhãn Tùy Chỉnh",
+        "tag.default": "Nhãn Mặc Định",
+        "tag.filter": "Lọc Theo Nhãn",
+        "tag.clear_filter": "Xóa",
+        "tag.add_custom": "Thêm Nhãn Mới",
+        "tag.name.placeholder": "VD: Dị Ứng",
+        "tag.name_vi.placeholder": "VD: Dị Ứng",
+
+        // Visit Detail
+        "detail.photos": "Hình Ảnh",
+        "detail.tap_to_view": "Nhấn để xem",
+        "detail.loading_photos": "Đang tải ảnh...",
+        "detail.information": "Thông Tin",
+        "detail.doctor": "Bác Sĩ",
+        "detail.created": "Ngày Tạo",
+        "detail.updated": "Cập Nhật",
+        "detail.notes": "Ghi Chú",
+        "detail.tags": "Nhãn",
     ]
 }
 

@@ -114,6 +114,14 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+
+    /// Returns a darker version of the color
+    func darker(by percentage: CGFloat = 0.3) -> Color {
+        let uiColor = UIColor(self)
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        uiColor.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        return Color(UIColor(hue: h, saturation: s, brightness: max(b - percentage, 0), alpha: a))
+    }
 }
 
 // MARK: - View Extensions for Theme

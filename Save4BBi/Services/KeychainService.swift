@@ -132,14 +132,14 @@ final class KeychainService {
 }
 
 // MARK: - Errors
-enum KeychainError: Error {
+enum KeychainError: LocalizedError {
     case serviceUnavailable
     case keyGenerationFailed(Error)
     case saveFailed(Error)
     case retrievalFailed(Error)
     case deletionFailed(Error)
-    
-    var localizedDescription: String {
+
+    var errorDescription: String? {
         switch self {
         case .serviceUnavailable:
             return "Keychain service is unavailable"

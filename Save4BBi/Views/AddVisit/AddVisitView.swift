@@ -14,6 +14,7 @@ struct AddVisitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \FamilyMember.createdAt) private var members: [FamilyMember]
+    @Query(sort: \Tag.createdAt) private var allTags: [Tag]
     @ObservedObject private var lang = LanguageManager.shared
     @ObservedObject private var memberManager = MemberManager.shared
 
@@ -22,7 +23,7 @@ struct AddVisitView: View {
     @State private var doctorName = ""
     @State private var notes = ""
     @State private var visitDate = Date()
-    @State private var selectedTags: Set<String> = []
+    @State private var selectedTagIds: Set<String> = []
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var photoImages: [UIImage] = []
     @State private var isSaving = false
@@ -38,8 +39,7 @@ struct AddVisitView: View {
     private let photoService = PhotoService.shared
     private let disposeBag = DisposeBag()
 
-    // Tag keys for localization
-    private let tagKeys = ["tag.checkup", "tag.vaccination", "tag.emergency", "tag.dental", "tag.fever", "tag.routine"]
+
     
     var body: some View {
         NavigationStack {
@@ -345,28 +345,13 @@ struct AddVisitView: View {
 
     // MARK: - Tags Section
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text(lang.localized("visit.tags"))
-                .font(Theme.Typography.title3)
-                .foregroundColor(Theme.Colors.text)
+        TagSelectorView(selectedTagIds: $selectedTagIds)
+    }
 
-            FlowLayout(spacing: Theme.Spacing.sm) {
-                ForEach(tagKeys, id: \.self) { tagKey in
-                    let displayText = lang.localized(tagKey)
-                    TagButton(
-                        text: displayText,
-                        isSelected: selectedTags.contains(tagKey)
-                    ) {
-                        if selectedTags.contains(tagKey) {
-                            selectedTags.remove(tagKey)
-                        } else {
-                            selectedTags.insert(tagKey)
-                        }
-                    }
-                }
-            }
-            .padding(Theme.Spacing.md)
-            .cardStyle()
+    // Convert selected tag IDs to tag names for storage
+    private var selectedTagNames: [String] {
+        selectedTagIds.compactMap { tagId in
+            allTags.first { $0.id.uuidString == tagId }?.name
         }
     }
 
@@ -440,7 +425,7 @@ struct AddVisitView: View {
             notes: notes,
             visitDate: visitDate,
             photoFilePaths: savedPhotoFilenames,
-            tags: Array(selectedTags),
+            tags: selectedTagNames,
             memberId: selectedMemberId
         )
 

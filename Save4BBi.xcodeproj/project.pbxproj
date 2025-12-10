@@ -325,6 +325,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MediFamily;
+				INFOPLIST_KEY_NSCameraUsageDescription = "MediFamily needs camera access to take photos of medical documents and prescriptions.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MediFamily needs photo library access to save and select medical document photos.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -371,6 +373,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MediFamily;
+				INFOPLIST_KEY_NSCameraUsageDescription = "MediFamily needs camera access to take photos of medical documents and prescriptions.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MediFamily needs photo library access to save and select medical document photos.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

@@ -148,10 +148,19 @@ final class FamilyMember: Identifiable {
 
 // MARK: - Computed Properties
 extension FamilyMember {
+    // Static formatters to avoid expensive re-creation
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }()
+
+    private static let calendar = Calendar.current
+
     var age: String {
-        let calendar = Calendar.current
         let now = Date()
-        let components = calendar.dateComponents([.year, .month], from: dateOfBirth, to: now)
+        let components = Self.calendar.dateComponents([.year, .month], from: dateOfBirth, to: now)
 
         if let years = components.year, years > 0 {
             if memberType == .child, let months = components.month, months > 0 {
@@ -165,14 +174,11 @@ extension FamilyMember {
     }
 
     var ageInYears: Int {
-        Calendar.current.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 0
+        Self.calendar.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 0
     }
 
     var formattedBirthDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: dateOfBirth)
+        Self.dateFormatter.string(from: dateOfBirth)
     }
 
     var avatarIcon: String {

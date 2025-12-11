@@ -142,6 +142,17 @@ struct LocalizedStrings {
         "edit.new.photos": "new photos",
         "button.clear": "Clear",
 
+        // Symptoms, Medications, Recovery
+        "visit.symptoms": "Symptoms",
+        "visit.symptoms.placeholder": "e.g., Headache, fever, cough...",
+        "visit.medications": "Medications",
+        "visit.medications.placeholder": "e.g., Paracetamol 500mg x 3 times/day...",
+        "visit.recovery": "Recovery Status",
+        "visit.recovery.ongoing": "Ongoing",
+        "visit.recovery.recovered": "Recovered",
+        "visit.recovery.chronic": "Chronic",
+        "visit.recovery.unknown": "Unknown",
+
         // Tags
         "tag.checkup": "Checkup",
         "tag.vaccination": "Vaccination",
@@ -411,6 +422,17 @@ struct LocalizedStrings {
         "visit.condition.required": "Tình Trạng *",
         "edit.new.photos": "ảnh mới",
         "button.clear": "Xóa",
+
+        // Symptoms, Medications, Recovery
+        "visit.symptoms": "Triệu Chứng",
+        "visit.symptoms.placeholder": "VD: Đau đầu, sốt, ho...",
+        "visit.medications": "Thuốc Điều Trị",
+        "visit.medications.placeholder": "VD: Paracetamol 500mg x 3 lần/ngày...",
+        "visit.recovery": "Tình Trạng Khỏi Bệnh",
+        "visit.recovery.ongoing": "Đang Điều Trị",
+        "visit.recovery.recovered": "Đã Khỏi",
+        "visit.recovery.chronic": "Bệnh Mãn Tính",
+        "visit.recovery.unknown": "Không Xác Định",
 
         // Tags
         "tag.checkup": "Khám Định Kỳ",

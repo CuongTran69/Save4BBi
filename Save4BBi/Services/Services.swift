@@ -24,10 +24,5 @@ struct Services {
     static var photo: PhotoService {
         return PhotoService.shared
     }
-    
-    /// Biometric authentication service
-    static var biometric: BiometricService {
-        return BiometricService.shared
-    }
 }
 

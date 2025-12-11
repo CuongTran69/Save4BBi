@@ -8,6 +8,41 @@
 import Foundation
 import SwiftData
 
+// MARK: - Recovery Status Enum
+enum RecoveryStatus: String, Codable, CaseIterable {
+    case ongoing = "ongoing"       // Đang điều trị
+    case recovered = "recovered"   // Đã khỏi
+    case chronic = "chronic"       // Bệnh mãn tính
+    case unknown = "unknown"       // Không xác định
+
+    var displayName: String {
+        switch self {
+        case .ongoing: return "Đang điều trị"
+        case .recovered: return "Đã khỏi"
+        case .chronic: return "Bệnh mãn tính"
+        case .unknown: return "Không xác định"
+        }
+    }
+
+    var displayNameEN: String {
+        switch self {
+        case .ongoing: return "Ongoing"
+        case .recovered: return "Recovered"
+        case .chronic: return "Chronic"
+        case .unknown: return "Unknown"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .ongoing: return "clock.arrow.circlepath"
+        case .recovered: return "checkmark.circle.fill"
+        case .chronic: return "arrow.triangle.2.circlepath"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+}
+
 @Model
 final class MedicalVisit: Identifiable {
     var id: UUID
@@ -28,6 +63,15 @@ final class MedicalVisit: Identifiable {
     // Family member ID (supports all family members)
     var memberId: UUID?
 
+    // NEW: Symptoms (triệu chứng)
+    var symptoms: String
+
+    // NEW: Medications/Prescriptions (thuốc được kê)
+    var medications: String
+
+    // NEW: Recovery status (tình trạng khỏi bệnh)
+    var recoveryStatusRaw: String
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -37,7 +81,10 @@ final class MedicalVisit: Identifiable {
         visitDate: Date = Date(),
         photoFilePaths: [String] = [],
         tags: [String] = [],
-        memberId: UUID? = nil
+        memberId: UUID? = nil,
+        symptoms: String = "",
+        medications: String = "",
+        recoveryStatus: RecoveryStatus = .unknown
     ) {
         self.id = id
         self.title = title
@@ -50,6 +97,15 @@ final class MedicalVisit: Identifiable {
         self.photoFilePaths = photoFilePaths
         self.tags = tags
         self.memberId = memberId
+        self.symptoms = symptoms
+        self.medications = medications
+        self.recoveryStatusRaw = recoveryStatus.rawValue
+    }
+
+    // Computed property for RecoveryStatus
+    var recoveryStatus: RecoveryStatus {
+        get { RecoveryStatus(rawValue: recoveryStatusRaw) ?? .unknown }
+        set { recoveryStatusRaw = newValue.rawValue }
     }
 }
 

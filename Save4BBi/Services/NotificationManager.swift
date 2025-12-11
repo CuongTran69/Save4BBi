@@ -110,7 +110,7 @@ class NotificationManager: ObservableObject {
     }
     
     // MARK: - Clear Badge
-    
+
     func clearBadge() {
         UNUserNotificationCenter.current().setBadgeCount(0) { error in
             if let error = error {

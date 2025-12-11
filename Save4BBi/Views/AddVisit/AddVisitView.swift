@@ -24,6 +24,9 @@ struct AddVisitView: View {
     @State private var notes = ""
     @State private var visitDate = Date()
     @State private var selectedTagIds: Set<String> = []
+    @State private var symptoms = ""
+    @State private var medications = ""
+    @State private var recoveryStatus: RecoveryStatus = .unknown
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var photoImages: [UIImage] = []
     @State private var isSaving = false
@@ -56,6 +59,9 @@ struct AddVisitView: View {
 
                     // Basic Information
                     basicInfoSection
+
+                    // Symptoms & Medications Section
+                    symptomsAndMedicationsSection
 
                     // Tags Section
                     tagsSection
@@ -363,6 +369,92 @@ struct AddVisitView: View {
         }
     }
 
+    // MARK: - Symptoms & Medications Section
+    private var symptomsAndMedicationsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            // Symptoms
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                Text(lang.localized("visit.symptoms"))
+                    .font(Theme.Typography.title3)
+                    .foregroundColor(Theme.Colors.text)
+
+                TextEditor(text: $symptoms)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.text)
+                    .frame(minHeight: 80)
+                    .padding(Theme.Spacing.sm)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.small)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.CornerRadius.small)
+                            .stroke(Theme.Colors.divider, lineWidth: 1)
+                    )
+                    .overlay(
+                        Group {
+                            if symptoms.isEmpty {
+                                Text(lang.localized("visit.symptoms.placeholder"))
+                                    .font(Theme.Typography.body)
+                                    .foregroundColor(Theme.Colors.secondary.opacity(0.6))
+                                    .padding(.leading, Theme.Spacing.md)
+                                    .padding(.top, Theme.Spacing.md)
+                            }
+                        }, alignment: .topLeading
+                    )
+                    .focused($focusedField, equals: 4)
+            }
+
+            // Medications
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                Text(lang.localized("visit.medications"))
+                    .font(Theme.Typography.title3)
+                    .foregroundColor(Theme.Colors.text)
+
+                TextEditor(text: $medications)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.text)
+                    .frame(minHeight: 80)
+                    .padding(Theme.Spacing.sm)
+                    .background(Theme.Colors.cardBackground)
+                    .cornerRadius(Theme.CornerRadius.small)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.CornerRadius.small)
+                            .stroke(Theme.Colors.divider, lineWidth: 1)
+                    )
+                    .overlay(
+                        Group {
+                            if medications.isEmpty {
+                                Text(lang.localized("visit.medications.placeholder"))
+                                    .font(Theme.Typography.body)
+                                    .foregroundColor(Theme.Colors.secondary.opacity(0.6))
+                                    .padding(.leading, Theme.Spacing.md)
+                                    .padding(.top, Theme.Spacing.md)
+                            }
+                        }, alignment: .topLeading
+                    )
+                    .focused($focusedField, equals: 5)
+            }
+
+            // Recovery Status
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                Text(lang.localized("visit.recovery"))
+                    .font(Theme.Typography.title3)
+                    .foregroundColor(Theme.Colors.text)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ForEach(RecoveryStatus.allCases, id: \.self) { status in
+                        RecoveryStatusButton(
+                            status: status,
+                            isSelected: recoveryStatus == status,
+                            language: lang.currentLanguage
+                        ) {
+                            recoveryStatus = status
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
@@ -435,7 +527,10 @@ struct AddVisitView: View {
             visitDate: visitDate,
             photoFilePaths: savedPhotoFilenames,
             tags: selectedTagNames,
-            memberId: selectedMemberId
+            memberId: selectedMemberId,
+            symptoms: symptoms,
+            medications: medications,
+            recoveryStatus: recoveryStatus
         )
 
         modelContext.insert(visit)
@@ -506,6 +601,37 @@ struct TagButton: View {
 }
 
 // FlowLayout is now imported from Components/FlowLayout.swift
+
+// MARK: - Recovery Status Button
+struct RecoveryStatusButton: View {
+    let status: RecoveryStatus
+    let isSelected: Bool
+    let language: AppLanguage
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: status.icon)
+                    .font(.system(size: 16))
+                Text(language == .vietnamese ? status.displayName : status.displayNameEN)
+                    .font(.system(size: 14, weight: .medium))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .background(isSelected ? Theme.Colors.primary : Theme.Colors.cardBackground)
+            .foregroundColor(isSelected ? .white : Theme.Colors.text)
+            .cornerRadius(Theme.CornerRadius.medium)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                    .stroke(isSelected ? Theme.Colors.primary : Theme.Colors.divider, lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
 
 // #Preview {
 //     AddVisitView()

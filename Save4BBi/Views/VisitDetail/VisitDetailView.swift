@@ -47,12 +47,20 @@ struct VisitDetailView: View {
                 
                 // Information Card
                 informationCard
-                
+
+                // Symptoms & Medications Section
+                if !visit.symptoms.isEmpty || !visit.medications.isEmpty {
+                    symptomsAndMedicationsSection
+                }
+
+                // Recovery Status Section
+                recoveryStatusSection
+
                 // Notes Section
                 if !visit.notes.isEmpty {
                     notesSection
                 }
-                
+
                 // Tags Section
                 if !visit.tags.isEmpty {
                     tagsSection
@@ -227,6 +235,85 @@ struct VisitDetailView: View {
         }
         .padding(Theme.Spacing.md)
         .cardStyle()
+    }
+
+    // MARK: - Symptoms & Medications Section
+    private var symptomsAndMedicationsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            // Symptoms
+            if !visit.symptoms.isEmpty {
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    HStack {
+                        Image(systemName: "heart.text.square")
+                            .foregroundColor(Theme.Colors.primary)
+                        Text(lang.localized("visit.symptoms"))
+                            .font(Theme.Typography.title3)
+                            .foregroundColor(Theme.Colors.text)
+                    }
+
+                    Text(visit.symptoms)
+                        .font(Theme.Typography.body)
+                        .foregroundColor(Theme.Colors.secondary)
+                }
+            }
+
+            // Medications
+            if !visit.medications.isEmpty {
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    HStack {
+                        Image(systemName: "pills.fill")
+                            .foregroundColor(.pink)
+                        Text(lang.localized("visit.medications"))
+                            .font(Theme.Typography.title3)
+                            .foregroundColor(Theme.Colors.text)
+                    }
+
+                    Text(visit.medications)
+                        .font(Theme.Typography.body)
+                        .foregroundColor(Theme.Colors.secondary)
+                }
+            }
+        }
+        .padding(Theme.Spacing.md)
+        .cardStyle()
+    }
+
+    // MARK: - Recovery Status Section
+    private var recoveryStatusSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            HStack {
+                Image(systemName: visit.recoveryStatus.icon)
+                    .foregroundColor(recoveryStatusColor)
+                Text(lang.localized("visit.recovery"))
+                    .font(Theme.Typography.title3)
+                    .foregroundColor(Theme.Colors.text)
+            }
+
+            HStack {
+                Text(lang.currentLanguage == .vietnamese
+                     ? visit.recoveryStatus.displayName
+                     : visit.recoveryStatus.displayNameEN)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(recoveryStatusColor)
+                    .clipShape(Capsule())
+
+                Spacer()
+            }
+        }
+        .padding(Theme.Spacing.md)
+        .cardStyle()
+    }
+
+    private var recoveryStatusColor: Color {
+        switch visit.recoveryStatus {
+        case .ongoing: return .orange
+        case .recovered: return .green
+        case .chronic: return .blue
+        case .unknown: return .gray
+        }
     }
 
     // MARK: - Notes Section

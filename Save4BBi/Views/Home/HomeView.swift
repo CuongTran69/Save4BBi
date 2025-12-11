@@ -29,6 +29,7 @@ struct HomeView: View {
     @State private var showingFamilyMembers = false
     @State private var showingStatistics = false
     @State private var showingReminders = false
+    @State private var showingManageTags = false
     @State private var isSearchExpanded = false
     @State private var showingSideMenu = false
     @FocusState private var isSearchFocused: Bool
@@ -161,13 +162,17 @@ struct HomeView: View {
             .sheet(isPresented: $showingReminders) {
                 RemindersListView()
             }
+            .sheet(isPresented: $showingManageTags) {
+                ManageTagsSheet()
+            }
 
             // Side Menu overlay
             SideMenuView(
                 isPresented: $showingSideMenu,
                 onSettingsTap: { showingSettings = true },
                 onStatisticsTap: { showingStatistics = true },
-                onFamilyMembersTap: { showingFamilyMembers = true }
+                onFamilyMembersTap: { showingFamilyMembers = true },
+                onTagsTap: { showingManageTags = true }
             )
         }
     }

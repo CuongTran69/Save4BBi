@@ -294,9 +294,12 @@ struct LocalizedStrings {
 
         // Menu
         "menu.family": "Family Members",
+        "menu.tags": "Manage Tags",
         "menu.statistics": "Statistics",
         "menu.settings": "Settings",
         "menu.subtitle": "Family Health Tracker",
+        "menu.section.main": "Main",
+        "menu.section.app": "Application",
 
         // Tag Management
         "tag.manage": "Manage Tags",
@@ -555,9 +558,12 @@ struct LocalizedStrings {
 
         // Menu
         "menu.family": "Thành Viên",
+        "menu.tags": "Quản Lý Nhãn",
         "menu.statistics": "Thống Kê",
         "menu.settings": "Cài Đặt",
         "menu.subtitle": "Quản Lý Sức Khỏe Gia Đình",
+        "menu.section.main": "Chính",
+        "menu.section.app": "Ứng Dụng",
 
         // Tag Management
         "tag.manage": "Quản Lý Nhãn",

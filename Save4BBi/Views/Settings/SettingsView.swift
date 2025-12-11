@@ -21,10 +21,10 @@ struct SettingsView: View {
             .navigationTitle(languageManager.localized("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(languageManager.localized("button.done")) {
-                        dismiss()
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(languageManager.localized("button.done")) { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.primary)
                 }
             }
         }

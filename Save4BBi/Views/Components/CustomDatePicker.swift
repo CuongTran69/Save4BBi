@@ -169,28 +169,17 @@ private struct DatePickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        onDismiss()
-                    } label: {
-                        Text(lang.localized("button.cancel"))
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.Colors.text.opacity(0.7))
-                    }
+                    Button(lang.localized("button.cancel")) { onDismiss() }
+                        .foregroundColor(Theme.Colors.text.opacity(0.7))
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    Button(lang.localized("button.done")) {
                         date = tempDate
                         onDismiss()
-                    } label: {
-                        Text(lang.localized("button.done"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Theme.Colors.primary)
-                            .cornerRadius(8)
                     }
+                    .fontWeight(.semibold)
+                    .foregroundColor(Theme.Colors.primary)
                 }
             }
         }

@@ -291,6 +291,12 @@ struct LocalizedStrings {
         "reminder.mark_done": "Mark Done",
         "reminder.edit": "Edit Reminder",
         "reminder.date": "Reminder Date",
+        "reminder.add": "Add Reminder",
+        "reminder.add_title": "New Reminder",
+        "reminder.name": "Reminder Title",
+        "reminder.name_placeholder": "e.g. Follow-up checkup",
+        "reminder.message": "Note (Optional)",
+        "reminder.message_placeholder": "e.g. Bring lab results",
 
         // Menu
         "menu.family": "Family Members",
@@ -555,6 +561,12 @@ struct LocalizedStrings {
         "reminder.mark_done": "Đánh Dấu Xong",
         "reminder.edit": "Sửa Nhắc Nhở",
         "reminder.date": "Ngày Nhắc",
+        "reminder.add": "Thêm Nhắc Nhở",
+        "reminder.add_title": "Nhắc Nhở Mới",
+        "reminder.name": "Tiêu Đề",
+        "reminder.name_placeholder": "VD: Tái khám định kỳ",
+        "reminder.message": "Ghi Chú (Tùy Chọn)",
+        "reminder.message_placeholder": "VD: Mang theo kết quả xét nghiệm",
 
         // Menu
         "menu.family": "Thành Viên",

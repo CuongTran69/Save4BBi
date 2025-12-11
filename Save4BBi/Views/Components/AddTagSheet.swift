@@ -105,12 +105,13 @@ struct AddTagSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) { dismiss() }
+                        .foregroundColor(Theme.Colors.text.opacity(0.7))
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(lang.localized("button.save")) {
-                        saveTag()
-                    }
-                    .disabled(name.isEmpty)
+                    Button(lang.localized("button.save")) { saveTag() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(name.isEmpty ? Theme.Colors.primary.opacity(0.4) : Theme.Colors.primary)
+                        .disabled(name.isEmpty)
                 }
             }
         }

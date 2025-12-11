@@ -48,8 +48,10 @@ struct StatisticsView: View {
             .navigationTitle(lang.localized("stats.title"))
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.done")) { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.primary)
                 }
             }
         }

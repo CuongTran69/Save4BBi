@@ -72,28 +72,15 @@ struct AddVisitView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text(lang.localized("button.cancel"))
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.Colors.text.opacity(0.7))
-                    }
+                    Button(lang.localized("button.cancel")) { dismiss() }
+                        .foregroundColor(Theme.Colors.text.opacity(0.7))
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        saveVisit()
-                    } label: {
-                        Text(lang.localized("button.save"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(isFormValid && !isSaving ? .white : Theme.Colors.text.opacity(0.3))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.text.opacity(0.1))
-                            .cornerRadius(8)
-                    }
-                    .disabled(!isFormValid || isSaving)
+                    Button(lang.localized("button.save")) { saveVisit() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.4))
+                        .disabled(!isFormValid || isSaving)
                 }
             }
         }

@@ -21,6 +21,7 @@ struct RemindersListView: View {
     @State private var showEditSheet = false
     @State private var reminderToEdit: Reminder?
     @State private var editedDate: Date = Date()
+    @State private var showAddSheet = false
     
     // Filter to show only upcoming (not completed, not past)
     private var upcomingReminders: [Reminder] {
@@ -48,17 +49,17 @@ struct RemindersListView: View {
             .navigationTitle(lang.localized("reminder.upcoming"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text(lang.localized("button.done"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Theme.Colors.primary)
-                            .cornerRadius(8)
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(lang.localized("button.done")) { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.primary)
+                }
+
+                ToolbarItem(placement: .primaryAction) {
+                    Button { showAddSheet = true } label: {
+                        Image(systemName: "plus")
+                            .fontWeight(.semibold)
+                            .foregroundColor(Theme.Colors.primary)
                     }
                 }
             }
@@ -74,6 +75,9 @@ struct RemindersListView: View {
             }
             .sheet(isPresented: $showEditSheet) {
                 editReminderSheet
+            }
+            .sheet(isPresented: $showAddSheet) {
+                AddReminderSheet()
             }
         }
     }
@@ -116,27 +120,14 @@ struct RemindersListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        showEditSheet = false
-                    } label: {
-                        Text(lang.localized("button.cancel"))
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.Colors.text.opacity(0.7))
-                    }
+                    Button(lang.localized("button.cancel")) { showEditSheet = false }
+                        .foregroundColor(Theme.Colors.text.opacity(0.7))
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        saveEditedReminder()
-                    } label: {
-                        Text(lang.localized("button.save"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Theme.Colors.primary)
-                            .cornerRadius(8)
-                    }
+                    Button(lang.localized("button.save")) { saveEditedReminder() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.primary)
                 }
             }
         }

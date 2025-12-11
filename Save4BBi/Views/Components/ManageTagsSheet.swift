@@ -59,12 +59,14 @@ struct ManageTagsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.done")) { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.primary)
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddTagSheet = true
-                    } label: {
+                    Button { showAddTagSheet = true } label: {
                         Image(systemName: "plus")
+                            .fontWeight(.semibold)
+                            .foregroundColor(Theme.Colors.primary)
                     }
                 }
             }

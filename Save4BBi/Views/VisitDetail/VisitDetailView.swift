@@ -65,13 +65,9 @@ struct VisitDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(Theme.Colors.text.opacity(0.5))
-                }
+                Button(lang.localized("button.done")) { dismiss() }
+                    .fontWeight(.semibold)
+                    .foregroundColor(Theme.Colors.primary)
             }
 
             ToolbarItem(placement: .primaryAction) {

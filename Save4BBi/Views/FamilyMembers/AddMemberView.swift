@@ -42,9 +42,13 @@ struct AddMemberView: View {
     @State private var showLibrary = false
     @State private var cameraImage: UIImage?
 
+    // Keyboard navigation
+    @FocusState private var focusedField: Int?
+
     private var isEditing: Bool { memberToEdit != nil }
     private var isFormValid: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty }
     private var showAdultFields: Bool { memberType != .child }
+    private var totalFields: Int { showAdultFields ? 7 : 2 } // name, notes (+5 adult fields)
 
     var body: some View {
         NavigationStack {
@@ -64,10 +68,11 @@ struct AddMemberView: View {
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.top, Theme.Spacing.sm)
             }
-            .dismissKeyboardOnTap()
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.Colors.background)
             .navigationTitle(isEditing ? lang.localized("member.edit") : lang.localized("member.add"))
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture { hideKeyboard() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) { dismiss() }
@@ -78,6 +83,23 @@ struct AddMemberView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(isFormValid ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.4))
                         .disabled(!isFormValid)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < totalFields - 1 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == totalFields - 1)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
             .onAppear { loadExistingData() }
@@ -257,7 +279,8 @@ struct AddMemberView: View {
                 icon: "person.fill",
                 title: lang.localized("member.name"),
                 placeholder: lang.localized("member.name.placeholder"),
-                text: $name
+                text: $name,
+                fieldIndex: 0
             )
 
             // Date of Birth
@@ -388,7 +411,8 @@ struct AddMemberView: View {
                     title: lang.localized("member.height"),
                     placeholder: "165",
                     unit: "cm",
-                    text: $height
+                    text: $height,
+                    fieldIndex: 2
                 )
 
                 styledNumberField(
@@ -396,7 +420,8 @@ struct AddMemberView: View {
                     title: lang.localized("member.weight"),
                     placeholder: "60",
                     unit: "kg",
-                    text: $weight
+                    text: $weight,
+                    fieldIndex: 3
                 )
             }
 
@@ -422,21 +447,24 @@ struct AddMemberView: View {
                 icon: "cross.case.fill",
                 title: lang.localized("member.chronic"),
                 placeholder: lang.localized("member.chronic.placeholder"),
-                text: $chronicConditions
+                text: $chronicConditions,
+                fieldIndex: 4
             )
 
             styledTextField(
                 icon: "pills.fill",
                 title: lang.localized("member.medications"),
                 placeholder: lang.localized("member.medications.placeholder"),
-                text: $currentMedications
+                text: $currentMedications,
+                fieldIndex: 5
             )
 
             styledTextField(
                 icon: "creditcard.fill",
                 title: lang.localized("member.insurance"),
                 placeholder: lang.localized("member.insurance.placeholder"),
-                text: $insuranceId
+                text: $insuranceId,
+                fieldIndex: 6
             )
         }
         .padding(Theme.Spacing.md)
@@ -482,6 +510,7 @@ struct AddMemberView: View {
                     .frame(minHeight: 100)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
+                    .focused($focusedField, equals: showAdultFields ? 7 : 1)
             }
             .padding(Theme.Spacing.sm)
             .background(Theme.Colors.background)
@@ -505,7 +534,7 @@ struct AddMemberView: View {
         }
     }
 
-    private func styledTextField(icon: String, title: String, placeholder: String, text: Binding<String>) -> some View {
+    private func styledTextField(icon: String, title: String, placeholder: String, text: Binding<String>, fieldIndex: Int? = nil) -> some View {
         HStack(spacing: Theme.Spacing.md) {
             Image(systemName: icon)
                 .foregroundColor(Theme.Colors.primary)
@@ -515,8 +544,14 @@ struct AddMemberView: View {
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(Theme.Colors.text.opacity(0.5))
-                TextField(placeholder, text: text)
-                    .font(.system(size: 15))
+                if let idx = fieldIndex {
+                    TextField(placeholder, text: text)
+                        .font(.system(size: 15))
+                        .focused($focusedField, equals: idx)
+                } else {
+                    TextField(placeholder, text: text)
+                        .font(.system(size: 15))
+                }
             }
         }
         .padding(Theme.Spacing.md)
@@ -524,16 +559,23 @@ struct AddMemberView: View {
         .cornerRadius(Theme.CornerRadius.medium)
     }
 
-    private func styledNumberField(icon: String, title: String, placeholder: String, unit: String, text: Binding<String>) -> some View {
+    private func styledNumberField(icon: String, title: String, placeholder: String, unit: String, text: Binding<String>, fieldIndex: Int? = nil) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Label(title, systemImage: icon)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(Theme.Colors.text.opacity(0.5))
 
             HStack {
-                TextField(placeholder, text: text)
-                    .keyboardType(.decimalPad)
-                    .font(.system(size: 16, weight: .medium))
+                if let idx = fieldIndex {
+                    TextField(placeholder, text: text)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 16, weight: .medium))
+                        .focused($focusedField, equals: idx)
+                } else {
+                    TextField(placeholder, text: text)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 16, weight: .medium))
+                }
                 Text(unit)
                     .font(.system(size: 12))
                     .foregroundColor(Theme.Colors.text.opacity(0.5))

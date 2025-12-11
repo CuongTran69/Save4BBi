@@ -36,6 +36,9 @@ struct AddVisitView: View {
     @State private var showCamera = false
     @State private var showLibrary = false
 
+    // Keyboard navigation
+    @FocusState private var focusedField: Int?
+
     private let photoService = PhotoService.shared
     private let disposeBag = DisposeBag()
 
@@ -62,7 +65,7 @@ struct AddVisitView: View {
                 }
                 .padding(Theme.Spacing.md)
             }
-            .dismissKeyboardOnTap()
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.Colors.background)
             .navigationTitle(lang.localized("visit.add.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -70,6 +73,7 @@ struct AddVisitView: View {
                 // Default to currently selected member
                 selectedMemberId = memberManager.selectedMemberId
             }
+            .onTapGesture { hideKeyboard() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) { dismiss() }
@@ -81,6 +85,23 @@ struct AddVisitView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.4))
                         .disabled(!isFormValid || isSaving)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < 3 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == 3)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
         }
@@ -310,13 +331,13 @@ struct AddVisitView: View {
 
             VStack(spacing: Theme.Spacing.md) {
                 // Title
-                FormField(title: lang.localized("visit.title"), placeholder: lang.localized("visit.title.placeholder"), text: $title)
+                FormField(title: lang.localized("visit.title"), placeholder: lang.localized("visit.title.placeholder"), text: $title, focusedField: $focusedField, fieldIndex: 0)
 
                 // Condition (Required)
-                FormField(title: lang.localized("visit.condition.required"), placeholder: lang.localized("visit.condition.placeholder"), text: $condition)
+                FormField(title: lang.localized("visit.condition.required"), placeholder: lang.localized("visit.condition.placeholder"), text: $condition, focusedField: $focusedField, fieldIndex: 1)
 
                 // Doctor Name
-                FormField(title: lang.localized("visit.doctor"), placeholder: lang.localized("visit.doctor.placeholder"), text: $doctorName)
+                FormField(title: lang.localized("visit.doctor"), placeholder: lang.localized("visit.doctor.placeholder"), text: $doctorName, focusedField: $focusedField, fieldIndex: 2)
 
                 // Visit Date
                 CustomDatePicker(
@@ -360,6 +381,7 @@ struct AddVisitView: View {
                     RoundedRectangle(cornerRadius: Theme.CornerRadius.small)
                         .stroke(Theme.Colors.divider, lineWidth: 1)
                 )
+                .focused($focusedField, equals: 3)
         }
     }
 
@@ -435,6 +457,8 @@ struct FormField: View {
     let title: String
     let placeholder: String
     @Binding var text: String
+    var focusedField: FocusState<Int?>.Binding?
+    var fieldIndex: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
@@ -442,12 +466,22 @@ struct FormField: View {
                 .font(Theme.Typography.subheadline)
                 .foregroundColor(Theme.Colors.text.opacity(0.7))
 
-            TextField(placeholder, text: $text)
-                .font(Theme.Typography.body)
-                .foregroundColor(Theme.Colors.text)
-                .padding(Theme.Spacing.md)
-                .background(Theme.Colors.background)
-                .cornerRadius(Theme.CornerRadius.small)
+            if let focusedField = focusedField {
+                TextField(placeholder, text: $text)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.text)
+                    .padding(Theme.Spacing.md)
+                    .background(Theme.Colors.background)
+                    .cornerRadius(Theme.CornerRadius.small)
+                    .focused(focusedField, equals: fieldIndex)
+            } else {
+                TextField(placeholder, text: $text)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.text)
+                    .padding(Theme.Spacing.md)
+                    .background(Theme.Colors.background)
+                    .cornerRadius(Theme.CornerRadius.small)
+            }
         }
     }
 }

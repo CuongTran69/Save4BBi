@@ -17,16 +17,20 @@ struct AddTagSheet: View {
     @State private var nameVI = ""
     @State private var selectedIcon = "🏷️"
     @State private var selectedColorHex = "A8D8EA"
-    
+
+    @FocusState private var focusedField: Int?
+
     private let iconOptions = ["🏷️", "💊", "🏥", "🩹", "🧪", "👁️", "🦴", "🧠", "❤️", "🫁", "🦷", "👂", "🤧", "😷", "🤕", "🩺", "💉", "🚑", "⚕️", "🧬"]
     private let colorOptions = ["A8D8EA", "FFB6B9", "B4E7CE", "FFD93D", "C4B5E0", "F5A623", "7ED321", "4A90E2", "BD10E0", "9B9B9B"]
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     TextField(lang.localized("tag.name.placeholder"), text: $name)
+                        .focused($focusedField, equals: 0)
                     TextField(lang.localized("tag.name_vi.placeholder"), text: $nameVI)
+                        .focused($focusedField, equals: 1)
                 } header: {
                     Text(lang.localized("tag.name"))
                 }
@@ -100,6 +104,7 @@ struct AddTagSheet: View {
                     Text("Preview")
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(lang.localized("tag.add"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -112,6 +117,23 @@ struct AddTagSheet: View {
                         .fontWeight(.semibold)
                         .foregroundColor(name.isEmpty ? Theme.Colors.primary.opacity(0.4) : Theme.Colors.primary)
                         .disabled(name.isEmpty)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < 1 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == 1)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
         }

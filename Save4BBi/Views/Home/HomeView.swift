@@ -146,6 +146,15 @@ struct HomeView: View {
                         }
                     }
                 }
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(languageManager.localized("button.done")) {
+                            isSearchFocused = false
+                        }
+                        .fontWeight(.semibold)
+                    }
+                }
             }
             .sheet(isPresented: $showingAddVisit) {
                 AddVisitView()

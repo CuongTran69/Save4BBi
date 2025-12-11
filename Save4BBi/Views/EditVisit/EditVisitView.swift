@@ -37,6 +37,9 @@ struct EditVisitView: View {
     @State private var showLibrary = false
     @ObservedObject private var lang = LanguageManager.shared
 
+    // Keyboard navigation
+    @FocusState private var focusedField: Int?
+
     private let photoService = PhotoService.shared
 
     init(visit: MedicalVisit) {
@@ -75,10 +78,11 @@ struct EditVisitView: View {
                 }
                 .padding(Theme.Spacing.md)
             }
-            .dismissKeyboardOnTap()
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.Colors.background)
             .navigationTitle(lang.localized("visit.edit.title"))
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture { hideKeyboard() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) { dismiss() }
@@ -90,6 +94,23 @@ struct EditVisitView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(isFormValid && !isSaving ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.4))
                         .disabled(!isFormValid || isSaving)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < 3 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == 3)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
         }
@@ -347,23 +368,23 @@ struct EditVisitView: View {
     // MARK: - Basic Info Section
     private var basicInfoSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            Text("Visit Information")
+            Text(lang.localized("visit.info.title"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
-            
+
             VStack(spacing: Theme.Spacing.md) {
                 // Title
-                FormField(title: "Title", placeholder: "e.g., Annual Checkup", text: $title)
-                
+                FormField(title: lang.localized("visit.title"), placeholder: lang.localized("visit.title.placeholder"), text: $title, focusedField: $focusedField, fieldIndex: 0)
+
                 // Condition (Required)
-                FormField(title: "Condition *", placeholder: "e.g., Fever, Vaccination", text: $condition)
-                
+                FormField(title: lang.localized("visit.condition.required"), placeholder: lang.localized("visit.condition.placeholder"), text: $condition, focusedField: $focusedField, fieldIndex: 1)
+
                 // Doctor Name
-                FormField(title: "Doctor Name", placeholder: "e.g., Dr. Nguyễn Văn A", text: $doctorName)
+                FormField(title: lang.localized("visit.doctor"), placeholder: lang.localized("visit.doctor.placeholder"), text: $doctorName, focusedField: $focusedField, fieldIndex: 2)
 
                 // Visit Date
                 CustomDatePicker(
-                    "Visit Date",
+                    lang.localized("visit.date"),
                     selection: $visitDate,
                     mode: .date
                 )
@@ -399,7 +420,7 @@ struct EditVisitView: View {
             Text(lang.localized("visit.notes"))
                 .font(Theme.Typography.title3)
                 .foregroundColor(Theme.Colors.text)
-            
+
             TextEditor(text: $notes)
                 .font(Theme.Typography.body)
                 .foregroundColor(Theme.Colors.text)
@@ -411,6 +432,7 @@ struct EditVisitView: View {
                     RoundedRectangle(cornerRadius: Theme.CornerRadius.small)
                         .stroke(Theme.Colors.divider, lineWidth: 1)
                 )
+                .focused($focusedField, equals: 3)
         }
     }
     

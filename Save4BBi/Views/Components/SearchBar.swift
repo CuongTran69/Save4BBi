@@ -11,6 +11,7 @@ struct SearchBar: View {
     @Binding var text: String
     var placeholder: String = "Search visits, conditions, doctors..."
     @FocusState private var isFocused: Bool
+    @ObservedObject private var lang = LanguageManager.shared
 
     var body: some View {
         HStack(spacing: Theme.Spacing.sm) {
@@ -24,7 +25,7 @@ struct SearchBar: View {
                 .foregroundColor(Theme.Colors.text)
                 .focused($isFocused)
                 .submitLabel(.search)
-            
+
             // Clear button
             if !text.isEmpty {
                 Button {
@@ -39,6 +40,15 @@ struct SearchBar: View {
         .background(Theme.Colors.cardBackground)
         .cornerRadius(Theme.CornerRadius.medium)
         .shadow(color: Theme.Colors.shadow, radius: 4, x: 0, y: 2)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(lang.localized("button.done")) {
+                    isFocused = false
+                }
+                .fontWeight(.semibold)
+            }
+        }
     }
 }
 

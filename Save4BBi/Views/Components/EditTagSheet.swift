@@ -20,9 +20,11 @@ struct EditTagSheet: View {
     @State private var selectedIcon: String
     @State private var selectedColorHex: String
     
+    @FocusState private var focusedField: Int?
+
     private let iconOptions = ["🏷️", "💊", "🏥", "🩹", "🧪", "👁️", "🦴", "🧠", "❤️", "🫁", "🦷", "👂", "🤧", "😷", "🤕", "🩺", "💉", "🚑", "⚕️", "🧬"]
     private let colorOptions = ["A8D8EA", "FFB6B9", "B4E7CE", "FFD93D", "C4B5E0", "F5A623", "7ED321", "4A90E2", "BD10E0", "9B9B9B"]
-    
+
     init(tag: Tag) {
         self.tag = tag
         _name = State(initialValue: tag.name)
@@ -30,13 +32,15 @@ struct EditTagSheet: View {
         _selectedIcon = State(initialValue: tag.icon)
         _selectedColorHex = State(initialValue: tag.colorHex)
     }
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     TextField(lang.localized("tag.name.placeholder"), text: $name)
+                        .focused($focusedField, equals: 0)
                     TextField(lang.localized("tag.name_vi.placeholder"), text: $nameVI)
+                        .focused($focusedField, equals: 1)
                 } header: {
                     Text(lang.localized("tag.name"))
                 }
@@ -110,6 +114,7 @@ struct EditTagSheet: View {
                     Text("Preview")
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(lang.localized("tag.edit"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -122,6 +127,23 @@ struct EditTagSheet: View {
                         .fontWeight(.semibold)
                         .foregroundColor(name.isEmpty ? Theme.Colors.primary.opacity(0.4) : Theme.Colors.primary)
                         .disabled(name.isEmpty)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < 1 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == 1)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
         }

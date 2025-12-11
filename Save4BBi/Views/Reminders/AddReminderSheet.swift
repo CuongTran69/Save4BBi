@@ -21,7 +21,9 @@ struct AddReminderSheet: View {
     @State private var scheduledDate: Date = Date().addingTimeInterval(86400) // Tomorrow
     @State private var selectedMemberId: UUID?
     @State private var showingSuccessAlert = false
-    
+
+    @FocusState private var focusedField: Int?
+
     private var canSave: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -35,26 +37,28 @@ struct AddReminderSheet: View {
                         Text(lang.localized("reminder.name"))
                             .font(Theme.Typography.bodyBold)
                             .foregroundColor(Theme.Colors.text)
-                        
+
                         TextField(lang.localized("reminder.name_placeholder"), text: $title)
                             .textFieldStyle(.plain)
                             .padding(Theme.Spacing.md)
                             .background(Theme.Colors.cardBackground)
                             .cornerRadius(Theme.CornerRadius.medium)
+                            .focused($focusedField, equals: 0)
                     }
-                    
+
                     // Message field (optional)
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text(lang.localized("reminder.message"))
                             .font(Theme.Typography.bodyBold)
                             .foregroundColor(Theme.Colors.text)
-                        
+
                         TextField(lang.localized("reminder.message_placeholder"), text: $message, axis: .vertical)
                             .textFieldStyle(.plain)
                             .lineLimit(2...4)
                             .padding(Theme.Spacing.md)
                             .background(Theme.Colors.cardBackground)
                             .cornerRadius(Theme.CornerRadius.medium)
+                            .focused($focusedField, equals: 1)
                     }
                     
                     // Member picker
@@ -88,9 +92,11 @@ struct AddReminderSheet: View {
                 }
                 .padding(Theme.Spacing.md)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.Colors.background)
             .navigationTitle(lang.localized("reminder.add_title"))
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture { hideKeyboard() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lang.localized("button.cancel")) { dismiss() }
@@ -102,6 +108,23 @@ struct AddReminderSheet: View {
                         .fontWeight(.semibold)
                         .foregroundColor(canSave ? Theme.Colors.primary : Theme.Colors.primary.opacity(0.4))
                         .disabled(!canSave)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button { if let f = focusedField, f > 0 { focusedField = f - 1 } } label: {
+                        Image(systemName: "chevron.up")
+                    }
+                    .disabled(focusedField == nil || focusedField == 0)
+
+                    Button { if let f = focusedField, f < 1 { focusedField = f + 1 } } label: {
+                        Image(systemName: "chevron.down")
+                    }
+                    .disabled(focusedField == nil || focusedField == 1)
+
+                    Spacer()
+
+                    Button(lang.localized("button.done")) { hideKeyboard() }
+                        .fontWeight(.semibold)
                 }
             }
             .alert(lang.localized("reminder.success"), isPresented: $showingSuccessAlert) {

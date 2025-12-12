@@ -103,14 +103,15 @@ struct VisitDetailView: View {
                 }
             }
         }
-        .alert(lang.localized("delete.title"), isPresented: $showingDeleteAlert) {
-            Button(lang.localized("button.cancel"), role: .cancel) { }
-            Button(lang.localized("button.delete"), role: .destructive) {
+        .customDialog(
+            isPresented: $showingDeleteAlert,
+            title: lang.localized("delete.title"),
+            message: lang.localized("delete.message"),
+            primaryButton: DialogButton(title: lang.localized("button.delete"), isDestructive: true) {
                 deleteVisit()
-            }
-        } message: {
-            Text(lang.localized("delete.message"))
-        }
+            },
+            secondaryButton: DialogButton(title: lang.localized("button.cancel")) {}
+        )
         .sheet(isPresented: $showingEditView, onDismiss: {
             // Reload photos after editing
             loadPhotos()

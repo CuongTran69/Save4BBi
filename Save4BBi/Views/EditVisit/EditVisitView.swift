@@ -123,11 +123,12 @@ struct EditVisitView: View {
                 }
             }
         }
-        .alert(lang.localized("error.title"), isPresented: $showError) {
-            Button(lang.localized("button.ok"), role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? lang.localized("error.unknown"))
-        }
+        .customDialog(
+            isPresented: $showError,
+            title: lang.localized("error.title"),
+            message: errorMessage ?? lang.localized("error.unknown"),
+            primaryButton: DialogButton(title: lang.localized("button.ok")) {}
+        )
         .overlay {
             if isSaving {
                 ZStack {

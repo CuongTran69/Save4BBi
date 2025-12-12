@@ -92,19 +92,19 @@ struct ReminderSheet: View {
                     }
                 }
             }
-            .alert(lang.localized("reminder.success"), isPresented: $showSuccess) {
-                Button("OK") { dismiss() }
-            } message: {
-                if let date = scheduledDate {
-                    Text("\(lang.localized("reminder.success_message")) \(formatDate(date))")
-                }
-            }
-            .alert(lang.localized("reminder.permission_required"), isPresented: $showPermissionAlert) {
-                Button(lang.localized("reminder.open_settings")) { openSettings() }
-                Button(lang.localized("reminder.cancel"), role: .cancel) { }
-            } message: {
-                Text(lang.localized("reminder.permission_message"))
-            }
+            .customDialog(
+                isPresented: $showSuccess,
+                title: lang.localized("reminder.success"),
+                message: scheduledDate != nil ? "\(lang.localized("reminder.success_message")) \(formatDate(scheduledDate!))" : "",
+                primaryButton: DialogButton(title: "OK") { dismiss() }
+            )
+            .customDialog(
+                isPresented: $showPermissionAlert,
+                title: lang.localized("reminder.permission_required"),
+                message: lang.localized("reminder.permission_message"),
+                primaryButton: DialogButton(title: lang.localized("reminder.open_settings")) { openSettings() },
+                secondaryButton: DialogButton(title: lang.localized("reminder.cancel")) {}
+            )
         }
     }
     

@@ -63,16 +63,17 @@ struct RemindersListView: View {
                     }
                 }
             }
-            .alert(lang.localized("reminder.delete"), isPresented: $showDeleteAlert) {
-                Button(lang.localized("button.cancel"), role: .cancel) { }
-                Button(lang.localized("button.delete"), role: .destructive) {
+            .customDialog(
+                isPresented: $showDeleteAlert,
+                title: lang.localized("reminder.delete"),
+                message: lang.localized("reminder.delete_confirm"),
+                primaryButton: DialogButton(title: lang.localized("button.delete"), isDestructive: true) {
                     if let reminder = reminderToDelete {
                         deleteReminder(reminder)
                     }
-                }
-            } message: {
-                Text(lang.localized("reminder.delete_confirm"))
-            }
+                },
+                secondaryButton: DialogButton(title: lang.localized("button.cancel")) {}
+            )
             .sheet(isPresented: $showEditSheet) {
                 editReminderSheet
             }

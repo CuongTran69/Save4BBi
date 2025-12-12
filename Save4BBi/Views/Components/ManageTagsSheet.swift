@@ -76,16 +76,17 @@ struct ManageTagsSheet: View {
             .sheet(item: $tagToEdit) { tag in
                 EditTagSheet(tag: tag)
             }
-            .alert(lang.localized("tag.delete"), isPresented: $showDeleteAlert) {
-                Button(lang.localized("button.cancel"), role: .cancel) {}
-                Button(lang.localized("button.delete"), role: .destructive) {
+            .customDialog(
+                isPresented: $showDeleteAlert,
+                title: lang.localized("tag.delete"),
+                message: lang.localized("tag.delete_confirm"),
+                primaryButton: DialogButton(title: lang.localized("button.delete"), isDestructive: true) {
                     if let tag = tagToDelete {
                         _ = TagManager.shared.deleteTag(tag, context: modelContext)
                     }
-                }
-            } message: {
-                Text(lang.localized("tag.delete_confirm"))
-            }
+                },
+                secondaryButton: DialogButton(title: lang.localized("button.cancel")) {}
+            )
         }
     }
     

@@ -127,13 +127,12 @@ struct AddReminderSheet: View {
                         .fontWeight(.semibold)
                 }
             }
-            .alert(lang.localized("reminder.success"), isPresented: $showingSuccessAlert) {
-                Button(lang.localized("button.ok")) {
-                    dismiss()
-                }
-            } message: {
-                Text("\(lang.localized("reminder.success_message")) \(formattedDate)")
-            }
+            .customDialog(
+                isPresented: $showingSuccessAlert,
+                title: lang.localized("reminder.success"),
+                message: "\(lang.localized("reminder.success_message")) \(formattedDate)",
+                primaryButton: DialogButton(title: lang.localized("button.ok")) { dismiss() }
+            )
         }
     }
     

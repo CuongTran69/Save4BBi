@@ -19,7 +19,8 @@ struct FamilyMembersView: View {
     @State private var showingAddMember = false
     @State private var memberToEdit: FamilyMember?
     @State private var memberToDelete: FamilyMember?
-    @State private var showingDeleteSheet = false
+    @State private var showingDeleteDialog = false
+    @State private var showingDeleteWithVisitsDialog = false
     @State private var memberVisitCount = 0
 
     private let photoService = PhotoService.shared
@@ -59,37 +60,34 @@ struct FamilyMembersView: View {
             .sheet(item: $memberToEdit) { member in
                 AddMemberView(memberToEdit: member)
             }
-            .confirmationDialog(
-                lang.localized("member.delete.title"),
-                isPresented: $showingDeleteSheet,
-                titleVisibility: .visible
-            ) {
-                if memberVisitCount > 0 {
-                    Button(lang.localized("member.delete.keep_visits"), role: .none) {
-                        if let member = memberToDelete {
-                            deleteMember(member, deleteVisits: false)
-                        }
+            // Dialog for member without visits
+            .customDialog(
+                isPresented: $showingDeleteDialog,
+                title: lang.localized("member.delete.title"),
+                message: lang.localized("member.delete.message"),
+                primaryButton: DialogButton(title: lang.localized("button.delete"), isDestructive: true) {
+                    if let member = memberToDelete {
+                        deleteMember(member, deleteVisits: false)
                     }
-                    Button(lang.localized("member.delete.with_visits"), role: .destructive) {
-                        if let member = memberToDelete {
-                            deleteMember(member, deleteVisits: true)
-                        }
+                },
+                secondaryButton: DialogButton(title: lang.localized("button.cancel")) {}
+            )
+            // Dialog for member with visits - using custom content for 3 buttons
+            .customDialog(
+                isPresented: $showingDeleteWithVisitsDialog,
+                title: lang.localized("member.delete.title"),
+                message: lang.localized("member.delete.has_visits").replacingOccurrences(of: "{count}", with: "\(memberVisitCount)"),
+                primaryButton: DialogButton(title: lang.localized("member.delete.with_visits"), isDestructive: true) {
+                    if let member = memberToDelete {
+                        deleteMember(member, deleteVisits: true)
                     }
-                } else {
-                    Button(lang.localized("button.delete"), role: .destructive) {
-                        if let member = memberToDelete {
-                            deleteMember(member, deleteVisits: false)
-                        }
+                },
+                secondaryButton: DialogButton(title: lang.localized("member.delete.keep_visits")) {
+                    if let member = memberToDelete {
+                        deleteMember(member, deleteVisits: false)
                     }
                 }
-                Button(lang.localized("button.cancel"), role: .cancel) { }
-            } message: {
-                if memberVisitCount > 0 {
-                    Text(lang.localized("member.delete.has_visits").replacingOccurrences(of: "{count}", with: "\(memberVisitCount)"))
-                } else {
-                    Text(lang.localized("member.delete.message"))
-                }
-            }
+            )
         }
     }
 
@@ -229,7 +227,11 @@ struct FamilyMembersView: View {
                     onDelete: {
                         memberToDelete = member
                         memberVisitCount = getVisitCount(for: member)
-                        showingDeleteSheet = true
+                        if memberVisitCount > 0 {
+                            showingDeleteWithVisitsDialog = true
+                        } else {
+                            showingDeleteDialog = true
+                        }
                     }
                 )
             }
